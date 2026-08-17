@@ -1,0 +1,9 @@
+[
+  { "id": "ORD-001", "customer": "John Doe", "email": "john@example.com", "status": "delivered", "total": 234.5, "items": 3, "createdAt": "2026-08-11" },
+  { "id": "ORD-002", "customer": "Jane Smith", "email": "jane@example.com", "status": "shipped", "total": 89.99, "items": 1, "createdAt": "2026-08-12" },
+  { "id": "ORD-003", "customer": "Bob Wilson", "email": "bob@example.com", "status": "processing", "total": 456, "items": 5, "createdAt": "2026-08-13" },
+  { "id": "ORD-004", "customer": "Alice Brown", "email": "alice@example.com", "status": "pending", "total": 67.25, "items": 2, "createdAt": "2026-08-14" },
+  { "id": "ORD-005", "customer": "Charlie Davis", "email": "charlie@example.com", "status": "cancelled", "total": 199.99, "items": 4, "createdAt": "2026-08-15" },
+  { "id": "ORD-006", "customer": "Diana Evans", "email": "diana@example.com", "status": "delivered", "total": 312.75, "items": 2, "createdAt": "2026-08-16" }
+]
+

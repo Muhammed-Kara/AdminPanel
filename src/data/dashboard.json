@@ -1,0 +1,29 @@
+{
+  "stats": [
+    { "key": "revenue", "value": "$45,231.89", "change": "+20.1%", "trend": "up" },
+    { "key": "orders", "value": "2,350", "change": "+12.5%", "trend": "up" },
+    { "key": "products", "value": "1,234", "change": "-2.1%", "trend": "down" },
+    { "key": "activeUsers", "value": "573", "change": "+8.2%", "trend": "up" }
+  ],
+  "revenue": [
+    { "month": "Oca", "revenue": 4000, "orders": 240 },
+    { "month": "Şub", "revenue": 3000, "orders": 210 },
+    { "month": "Mar", "revenue": 5000, "orders": 290 },
+    { "month": "Nis", "revenue": 4500, "orders": 260 },
+    { "month": "May", "revenue": 6000, "orders": 340 },
+    { "month": "Haz", "revenue": 5500, "orders": 310 },
+    { "month": "Tem", "revenue": 7000, "orders": 380 },
+    { "month": "Ağu", "revenue": 6500, "orders": 350 },
+    { "month": "Eyl", "revenue": 8000, "orders": 420 },
+    { "month": "Eki", "revenue": 7500, "orders": 400 },
+    { "month": "Kas", "revenue": 9000, "orders": 450 },
+    { "month": "Ara", "revenue": 8500, "orders": 430 }
+  ],
+  "recentOrders": [
+    { "id": "#3210", "customer": "Olivia Martin", "status": "shipped", "amount": "$42.25" },
+    { "id": "#3209", "customer": "Ava Johnson", "status": "processing", "amount": "$74.99" },
+    { "id": "#3208", "customer": "Michael Chen", "status": "delivered", "amount": "$125.00" },
+    { "id": "#3207", "customer": "Lisa Anderson", "status": "pending", "amount": "$89.50" }
+  ]
+}
+

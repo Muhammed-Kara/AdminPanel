@@ -1,0 +1,11 @@
+[
+  { "id": "1", "name": "Wireless Headphones", "category": "Electronics", "price": 79.99, "stock": 150, "status": "in-stock", "sku": "WH-001" },
+  { "id": "2", "name": "Smart Watch Pro", "category": "Electronics", "price": 299.99, "stock": 45, "status": "in-stock", "sku": "SW-002" },
+  { "id": "3", "name": "Cotton T-Shirt", "category": "Clothing", "price": 24.99, "stock": 8, "status": "low-stock", "sku": "CT-003" },
+  { "id": "4", "name": "Running Shoes", "category": "Sports", "price": 129.99, "stock": 0, "status": "out-of-stock", "sku": "RS-004" },
+  { "id": "5", "name": "Desk Lamp", "category": "Home", "price": 49.99, "stock": 200, "status": "in-stock", "sku": "DL-005" },
+  { "id": "6", "name": "Bluetooth Speaker", "category": "Electronics", "price": 59.99, "stock": 5, "status": "low-stock", "sku": "BS-006" },
+  { "id": "7", "name": "Wool Sweater", "category": "Clothing", "price": 89.99, "stock": 67, "status": "in-stock", "sku": "WS-007" },
+  { "id": "8", "name": "Yoga Mat", "category": "Sports", "price": 34.99, "stock": 0, "status": "out-of-stock", "sku": "YM-008" }
+]
+
