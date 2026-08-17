@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useI18n } from 'vue-i18n'
 import { ArrowUpRight, CalendarDays, DollarSign, Package, ShoppingCart, TrendingDown, TrendingUp, Users } from '@lucide/vue'
@@ -8,12 +7,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import PageHeader from '@/components/ui/PageHeader.vue'
+import RevenueAreaChart from '@/components/ui/RevenueAreaChart.vue'
 import { dummyService } from '@/service/dummy/dummy-service'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { data, isPending } = useQuery({ queryKey: ['dashboard'], queryFn: dummyService.getDashboard })
 const icons = { revenue: DollarSign, orders: ShoppingCart, products: Package, activeUsers: Users }
-const maxRevenue = computed(() => Math.max(...(data.value?.revenue.map((item) => item.revenue) ?? [1])))
 const iconFor = (key: string) => icons[key as keyof typeof icons] ?? Package
 const statusVariant = (status: string) => {
   if (status === 'delivered') return 'success'
@@ -54,12 +53,13 @@ const statusVariant = (status: string) => {
           <Badge variant="default"><ArrowUpRight :size="13" />{{ t('dashboard.yearlyGrowth') }}</Badge>
         </CardHeader>
         <CardContent>
-          <div class="revenue-chart">
-            <div v-for="item in data.revenue" :key="item.month" class="bar-column">
-              <div class="revenue-bar-track"><span :title="`${item.month}: ${item.revenue}`" :style="{ height: `${Math.max(8, (item.revenue / maxRevenue) * 100)}%` }" /></div>
-              <small>{{ item.month }}</small>
-            </div>
-          </div>
+          <RevenueAreaChart
+            :items="data.revenue"
+            :locale="locale"
+            :current-label="t('dashboard.currentMonth')"
+            :average-label="t('dashboard.monthlyAverage')"
+            :accessible-label="t('dashboard.chartAccessibleLabel')"
+          />
         </CardContent>
       </Card>
       <Card class="dashboard-orders-card">
