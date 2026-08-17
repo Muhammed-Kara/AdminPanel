@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ShieldCheck, Sparkles } from '@lucide/vue'
+import { toast } from 'vue-sonner'
 import { z } from 'zod'
 import { dummyService } from '@/service/dummy/dummy-service'
 import { useAuthStore } from '@/store/auth'
@@ -27,6 +28,7 @@ async function submit() {
   try {
     const result = await dummyService.login(email.value, password.value)
     auth.setSession(result.user, result.token)
+    toast.success(t('toast.loginSuccess'), { description: t('toast.welcome', { name: result.user.name }) })
     await router.push(String(route.query.redirect ?? '/'))
   } catch {
     error.value = t('login.invalid')
@@ -62,4 +64,3 @@ async function submit() {
     </section>
   </main>
 </template>
-

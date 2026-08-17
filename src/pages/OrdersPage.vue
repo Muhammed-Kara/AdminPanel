@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { toast } from 'vue-sonner'
 import { useI18n } from 'vue-i18n'
 import DataTable, { type TableColumn } from '@/components/ui/DataTable.vue'
 import EntityDialog, { type EntityField } from '@/components/ui/EntityDialog.vue'
@@ -34,7 +35,11 @@ const mutation = useMutation({
     if (dialogMode.value === 'edit' && value && selectedRow.value) await dummyService.updateOrder(String(selectedRow.value.id), value)
     if (dialogMode.value === 'delete' && selectedRow.value) await dummyService.deleteOrder(String(selectedRow.value.id))
   },
-  onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['orders'] }); dialogOpen.value = false },
+  onSuccess: async () => {
+    toast.success(t(`toast.${dialogMode.value}Success`, { entity: t('orders.entity') }))
+    await queryClient.invalidateQueries({ queryKey: ['orders'] })
+    dialogOpen.value = false
+  },
 })
 
 function openDialog(mode: DialogMode, row?: Record<string, unknown>) {
