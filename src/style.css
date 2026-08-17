@@ -178,6 +178,10 @@ body,.admin-shell,.admin-content,.page-container { background:var(--background);
 [data-sonner-toaster].app-toaster [data-sonner-toast] [data-title] { color:var(--foreground) !important; font-size:12px !important; font-weight:700 !important; letter-spacing:-.01em; }
 [data-sonner-toaster].app-toaster [data-sonner-toast] [data-description] { margin-top:3px; color:var(--muted) !important; font-size:10px !important; line-height:1.45 !important; }
 [data-sonner-toaster].app-toaster [data-sonner-toast] [data-icon] { width:28px; height:28px; display:grid; place-items:center; color:var(--primary) !important; background:var(--primary-soft); border-radius:max(7px,calc(var(--radius) - 4px)); }
+[data-sonner-toaster].app-toaster [data-sonner-toast] { align-items:center !important; }
+[data-sonner-toaster].app-toaster [data-sonner-toast] [data-icon] { position:relative !important; inset:auto !important; flex:0 0 28px !important; align-self:center !important; justify-content:center !important; margin:0 10px 0 0 !important; padding:0 !important; line-height:0 !important; }
+[data-sonner-toaster].app-toaster [data-sonner-toast] [data-icon] > svg { position:static !important; inset:auto !important; width:15px !important; height:15px !important; display:block !important; margin:0 !important; transform:none !important; }
+[data-sonner-toaster].app-toaster [data-sonner-toast] [data-content] { min-width:0; display:flex !important; flex-direction:column; justify-content:center; gap:2px; }
 [data-sonner-toaster].app-toaster [data-sonner-toast] [data-close-button] { top:12px !important; right:12px !important; left:auto !important; width:22px !important; height:22px !important; color:var(--muted) !important; background:var(--surface-soft) !important; border:1px solid var(--border) !important; transform:none !important; }
 @media (max-width:700px) { .radius-control { width:100%; }.accent-choice-grid { justify-content:flex-start; }.radius-presets { grid-template-columns:repeat(3,1fr); } [data-sonner-toaster].app-toaster { --width:calc(100vw - 28px); } }
 
