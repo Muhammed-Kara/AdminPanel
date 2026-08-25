@@ -9,7 +9,6 @@ import { useThemeStore } from '@/store/theme'
 const theme = useThemeStore()
 const { t, locale } = useI18n()
 const activeTab = ref<'appearance' | 'profile' | 'general'>('appearance')
-const radiusOptions = [2, 6, 10, 14, 18, 24]
 
 // Profile State
 const avatarUrl = ref<string | null>(localStorage.getItem('vue-admin-user-avatar'))
@@ -28,11 +27,6 @@ function setLocale(value: string) {
   locale.value = value
   localStorage.setItem('vue-admin-locale', value)
   toast.success(t('toast.appearanceUpdated'))
-}
-
-function setRadius(value: number, notify = true) {
-  theme.setRadius(value)
-  if (notify) toast.success(t('toast.appearanceUpdated'))
 }
 
 function triggerAvatarUpload() {
@@ -149,18 +143,6 @@ function logoutOtherDevices() {
             </div>
             <div v-if="theme.isDark" class="mode-check"><Check :size="13" /></div>
           </button>
-        </div>
-      </div>
-
-      <!-- Kenar Yumuşaklığı (Corner Softness / Radius) -->
-      <div class="appearance-setting">
-        <div><strong>{{ t('settings.radius') }}</strong><span>{{ t('settings.radiusDesc') }}</span></div>
-        <div class="radius-control">
-          <div class="radius-control-header"><span>{{ t('settings.radiusValue') }}</span><strong>{{ theme.radius }} px</strong></div>
-          <input :value="theme.radius" type="range" min="2" max="24" step="1" :aria-label="t('settings.radius')" @input="setRadius(Number(($event.target as HTMLInputElement).value), false)" @change="toast.success(t('toast.appearanceUpdated'))" />
-          <div class="radius-presets">
-            <button v-for="radius in radiusOptions" :key="radius" :class="{ active: theme.radius === radius }" :aria-label="`${radius} px`" :aria-pressed="theme.radius === radius" @click="setRadius(radius)"><i :style="{ borderRadius: `${Math.min(radius, 10)}px` }" />{{ radius }}</button>
-          </div>
         </div>
       </div>
     </div>
