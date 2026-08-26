@@ -11,7 +11,7 @@ const clone = <T>(value: T): T => structuredClone(value)
 let users = clone(usersData) as User[]
 let products = clone(productsData) as Product[]
 let orders = clone(ordersData) as Order[]
-let notifications = clone(notificationsData) as NotificationItem[]
+let notifications = clone(notificationsData) as unknown as NotificationItem[]
 
 const today = () => new Date().toISOString().slice(0, 10)
 const nextNumericId = (items: Array<{ id: string }>) => String(Math.max(0, ...items.map((item) => Number(item.id) || 0)) + 1)
