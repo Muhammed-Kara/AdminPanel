@@ -1,18 +1,10 @@
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 
-const RADIUS_KEY = 'vue-admin-radius'
-
-function readRadius() {
-  const value = localStorage.getItem(RADIUS_KEY)
-  const legacyValues: Record<string, number> = { compact: 6, default: 12, soft: 18 }
-  const parsed = value && value in legacyValues ? legacyValues[value] : Number(value)
-  return Number.isFinite(parsed) ? Math.min(24, Math.max(2, parsed)) : 12
-}
-
 export const useThemeStore = defineStore('theme', () => {
-  const isDark = ref(localStorage.getItem('vue-admin-theme') === 'dark')
-  const radius = ref(readRadius())
+  const storedTheme = localStorage.getItem('vue-admin-theme')
+  const isDark = ref(storedTheme ? storedTheme === 'dark' : true)
+  const radius = ref(Number(localStorage.getItem('vue-admin-radius')) || 2.5)
 
   watch([isDark, radius], ([darkValue, radiusValue]) => {
     document.documentElement.classList.toggle('dark', darkValue)
@@ -20,7 +12,7 @@ export const useThemeStore = defineStore('theme', () => {
     document.documentElement.style.setProperty('--radius', `${radiusValue}px`)
 
     localStorage.setItem('vue-admin-theme', darkValue ? 'dark' : 'light')
-    localStorage.setItem(RADIUS_KEY, String(radiusValue))
+    localStorage.setItem('vue-admin-radius', String(radiusValue))
   }, { immediate: true, deep: true })
 
   function toggle() {
@@ -32,7 +24,7 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   function setRadius(value: number) {
-    radius.value = Math.min(24, Math.max(2, value))
+    radius.value = value
   }
 
   return {
@@ -43,3 +35,4 @@ export const useThemeStore = defineStore('theme', () => {
     setRadius,
   }
 })
+

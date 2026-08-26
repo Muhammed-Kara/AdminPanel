@@ -1,15 +1,17 @@
 import authData from '@/data/auth.json'
 import dashboardData from '@/data/dashboard.json'
+import notificationsData from '@/data/notifications.json'
 import ordersData from '@/data/orders.json'
 import productsData from '@/data/products.json'
 import usersData from '@/data/users.json'
-import type { AuthUser, DashboardData, Order, Product, User } from '@/types'
+import type { AuthUser, DashboardData, NotificationItem, Order, Product, User } from '@/types'
 
 const wait = (milliseconds = 450) => new Promise((resolve) => window.setTimeout(resolve, milliseconds))
 const clone = <T>(value: T): T => structuredClone(value)
 let users = clone(usersData) as User[]
 let products = clone(productsData) as Product[]
 let orders = clone(ordersData) as Order[]
+let notifications = clone(notificationsData) as unknown as NotificationItem[]
 
 const today = () => new Date().toISOString().slice(0, 10)
 const nextNumericId = (items: Array<{ id: string }>) => String(Math.max(0, ...items.map((item) => Number(item.id) || 0)) + 1)
@@ -43,6 +45,22 @@ export const dummyService = {
   async getOrders() {
     await wait()
     return clone(orders)
+  },
+  async getNotifications() {
+    await wait(150)
+    return clone(notifications)
+  },
+  async markAllNotificationsRead() {
+    await wait(120)
+    notifications = notifications.map((item) => ({ ...item, read: true }))
+  },
+  async toggleNotification(id: number) {
+    await wait(120)
+    notifications = notifications.map((item) => item.id === id ? { ...item, read: !item.read } : item)
+  },
+  async clearNotifications() {
+    await wait(120)
+    notifications = []
   },
   async createUser(payload: Record<string, unknown>) {
     await wait(250)
