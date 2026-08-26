@@ -412,4 +412,59 @@ async function submit() {
 .auth-page *::after {
   border-radius: 2.5px !important;
 }
+
+/* Login de uygulamanın ortak açık/koyu tema tokenlarını kullanır. */
+.auth-page {
+  color: var(--foreground) !important;
+  background: radial-gradient(circle at 14% 12%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 30%), var(--background) !important;
+}
+.auth-visual { background: radial-gradient(circle at 75% 66%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 38%) !important; }
+.auth-visual::before { border-color: color-mix(in srgb, var(--accent) 18%, transparent); box-shadow: 0 0 0 80px color-mix(in srgb, var(--accent) 3%, transparent), 0 0 0 160px color-mix(in srgb, var(--accent) 2%, transparent); }
+.visual-intro span { color: var(--accent) !important; }
+.visual-intro span::before { background: var(--accent) !important; }
+.visual-intro h2 { color: var(--foreground) !important; }
+.visual-intro p { color: var(--muted) !important; }
+
+.dashboard-preview { background: var(--surface-soft) !important; border-color: var(--border) !important; box-shadow: 0 24px 54px color-mix(in srgb, var(--foreground) 12%, transparent) !important; }
+.preview-sidebar { color: var(--muted) !important; background: var(--preview-sidebar) !important; }
+.preview-logo,
+.preview-nav-active { color: var(--primary-foreground) !important; background: var(--primary) !important; box-shadow: none !important; }
+.preview-main,
+.preview-stat,
+.preview-chart-card,
+.preview-activity-card { color: var(--foreground) !important; background: var(--surface) !important; border-color: var(--border) !important; box-shadow: none !important; }
+.preview-header small,
+.preview-stat small,
+.preview-card-title span { color: var(--muted) !important; }
+.preview-header strong,
+.preview-card-title strong,
+.preview-activity-card > strong { color: var(--foreground) !important; }
+.preview-user { color: var(--muted) !important; }
+.preview-user span { color: var(--primary-foreground) !important; background: var(--primary) !important; }
+.stat-icon-violet,
+.stat-icon-blue,
+.stat-icon-green,
+.activity-row > span { color: var(--accent) !important; background: color-mix(in srgb, var(--accent) 12%, var(--surface-soft)) !important; }
+.stat-line,
+.activity-row i,
+.activity-row b { background: var(--border) !important; }
+.preview-chart { border-color: var(--border) !important; background: repeating-linear-gradient(to bottom, var(--border) 0, var(--border) 1px, transparent 1px, transparent 38px) !important; }
+.preview-chart span { background: linear-gradient(to top, var(--chart-end), var(--chart-start)) !important; }
+
+.auth-card { color: var(--foreground) !important; background: var(--surface) !important; border-color: var(--border) !important; box-shadow: 0 24px 60px color-mix(in srgb, var(--foreground) 10%, transparent) !important; }
+.auth-mark { color: var(--accent) !important; }
+.auth-heading h1 { color: var(--foreground) !important; -webkit-text-fill-color: var(--foreground); }
+.auth-heading p { color: var(--muted) !important; -webkit-text-fill-color: var(--muted); }
+.auth-input.ui-input { color: var(--foreground) !important; background: var(--surface-soft) !important; border-color: var(--border) !important; -webkit-text-fill-color: var(--foreground); }
+.auth-input.ui-input::placeholder { color: var(--muted) !important; -webkit-text-fill-color: var(--muted); }
+.field-icon,
+.password-toggle { color: var(--muted) !important; }
+.password-toggle:hover { color: var(--foreground) !important; background: var(--surface-soft) !important; }
+.remember-option,
+.remember-option span { color: var(--foreground) !important; -webkit-text-fill-color: var(--foreground); }
+.forgot-password { color: var(--accent) !important; -webkit-text-fill-color: var(--accent); }
+.security-note,
+.security-note div { color: var(--muted) !important; -webkit-text-fill-color: var(--muted); }
+.security-note > span { background: var(--border) !important; }
+.auth-submit.ui-button { color: var(--primary-foreground) !important; background: var(--primary) !important; border-color: var(--primary) !important; -webkit-text-fill-color: var(--primary-foreground); box-shadow: none !important; }
 </style>

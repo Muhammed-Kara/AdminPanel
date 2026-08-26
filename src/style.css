@@ -1096,6 +1096,7 @@ body,.admin-shell,.admin-content,.page-container { background:var(--background);
   --primary-soft: #eceef1;
   --accent: #4169e1;
   --sidebar: #ffffff;
+  --preview-sidebar: #111d36;
 }
 
 .dark {
@@ -1351,3 +1352,159 @@ body,
   .pagination-controls { width: max-content; max-width: 100%; }
   .page-size-select { width: 100%; }
 }
+
+/* Son tema paleti: açıkta koyu lacivert, koyuda yumuşak grafit. */
+:root {
+  --background: #f4f6fa;
+  --surface: #ffffff;
+  --surface-soft: #edf1f6;
+  --foreground: #10182a;
+  --muted: #69758a;
+  --border: #d7deea;
+  --primary: #111d36;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e5eaf2;
+  --accent: #1c2d50;
+  --sidebar: #ffffff;
+  --preview-sidebar: #111d36;
+  --chart-start: #314b7b;
+  --chart-end: #152441;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #17191d;
+  --surface: #1d2025;
+  --surface-soft: #25292f;
+  --foreground: #e8eaee;
+  --muted: #a0a5ae;
+  --border: #34383f;
+  --primary: #d9dde5;
+  --primary-foreground: #181a1f;
+  --primary-soft: #2b2f36;
+  --accent: #91a2ca;
+  --sidebar: #1a1c21;
+  --preview-sidebar: #171a20;
+  --chart-start: #a4b1d1;
+  --chart-end: #7084b3;
+}
+
+body,
+.admin-shell,
+.admin-content,
+.page-container,
+.dashboard-page-shell,
+.appearance-content { color: var(--foreground); background-color: var(--background) !important; }
+
+.sidebar,
+.topbar,
+.ui-card,
+.card,
+.table-card,
+.table-toolbar,
+.table-footer,
+.entity-dialog,
+.row-actions-menu,
+.settings-grid,
+.appearance-setting,
+.profile-header-box,
+[data-sonner-toast] {
+  color: var(--foreground) !important;
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+.ui-input,
+.form-field .ui-input,
+.entity-field .ui-input,
+.entity-field select,
+.page-size-select,
+.table-search,
+.header-search,
+.period-select-box,
+.view-all-btn,
+.mode-card,
+.two-factor-row,
+.preview-components-grid {
+  color: var(--foreground) !important;
+  background-color: var(--surface-soft) !important;
+  border-color: var(--border) !important;
+}
+
+input::placeholder { color: var(--muted) !important; opacity: 1; }
+.page-header h1,
+.header-page-title,
+.card-heading-title,
+.ui-card-title,
+.settings-heading h3,
+.appearance-setting strong,
+.mode-info strong { color: var(--foreground) !important; }
+.page-header p,
+.ui-card-description,
+.appearance-setting span,
+.stat-label-text,
+.stat-period-text,
+.order-customer-text,
+.record-info { color: var(--muted) !important; }
+
+.nav-link { color: var(--muted) !important; }
+.nav-link:hover { color: var(--foreground) !important; background: var(--surface-soft) !important; }
+.nav-link.active,
+.dark .sidebar .nav-link.active {
+  color: var(--foreground) !important;
+  background: var(--primary-soft) !important;
+  border-color: var(--border) !important;
+  box-shadow: inset 2px 0 0 var(--accent) !important;
+}
+.nav-link.active svg,
+.dark .sidebar .nav-link.active svg { color: var(--accent) !important; }
+
+.ui-button,
+.primary-button {
+  color: var(--primary-foreground) !important;
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+.ui-button-outline,
+.ui-button-ghost,
+.secondary-button,
+.icon-button {
+  color: var(--foreground) !important;
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+.ui-button-outline:hover,
+.ui-button-ghost:hover,
+.secondary-button:hover,
+.icon-button:hover { background: var(--surface-soft) !important; }
+.danger-button { color: #ffffff !important; background: var(--danger) !important; border-color: var(--danger) !important; }
+
+.table-card th { color: var(--muted) !important; background: var(--surface-soft) !important; border-color: var(--border) !important; }
+.table-card td { color: var(--foreground) !important; border-color: var(--border) !important; }
+.table-card tbody tr:hover { background: color-mix(in srgb, var(--surface-soft) 76%, transparent) !important; }
+.pagination-controls { background: var(--surface-soft) !important; border-color: var(--border) !important; }
+.page-btn { color: var(--muted) !important; border-color: var(--border) !important; }
+.page-btn:hover:not(:disabled) { color: var(--foreground) !important; background: var(--surface) !important; }
+.page-btn.num-btn.active { color: var(--primary-foreground) !important; background: var(--primary) !important; border-color: var(--primary) !important; }
+
+.stat-icon-box.purple,
+.stat-icon-box.blue,
+.stat-icon-box.indigo,
+.stat-icon-box.violet,
+.order-icon-box,
+.stat-icon {
+  color: var(--accent) !important;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-soft)) !important;
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border)) !important;
+}
+.stat-number-text,
+.order-id-text,
+.order-amount-text { color: var(--foreground) !important; }
+.settings-nav-bar button.active { color: var(--foreground) !important; }
+.settings-nav-bar button.active::after { background: var(--accent) !important; }
+.mode-card.active { border-color: var(--accent) !important; box-shadow: inset 2px 0 0 var(--accent) !important; }
+.dark h1,
+.dark h2,
+.dark h3,
+.dark .ui-card-title,
+.dark .card-heading-title { color: var(--foreground) !important; }
