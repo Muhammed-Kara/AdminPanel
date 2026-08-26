@@ -62,7 +62,7 @@ function displayValue(field: EntityField) {
               <option value="" disabled>{{ t('common.select') }}</option>
               <option v-for="option in field.options" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
-            <Input v-else :model-value="String(draft[field.key] ?? '')" :type="field.type ?? 'text'" required @update:model-value="updateValue(field, $event)" />
+            <Input v-else :model-value="String(draft[field.key] ?? '')" :type="field.type ?? 'text'" required @update:model-value="updateValue(field, String($event))" />
           </label>
           <footer class="entity-dialog-actions">
             <Button type="button" variant="outline" @click="emit('close')">{{ t('common.cancel') }}</Button>
