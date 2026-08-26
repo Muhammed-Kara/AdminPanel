@@ -1056,3 +1056,15 @@ body,.admin-shell,.admin-content,.page-container { background:var(--background);
     padding: 40px 28px;
   }
 }
+
+/* Uygulama genelinde tek köşe ölçüsü. */
+:root {
+  --radius: 2.5px;
+}
+
+#app,
+#app *,
+#app *::before,
+#app *::after {
+  border-radius: 2.5px !important;
+}
