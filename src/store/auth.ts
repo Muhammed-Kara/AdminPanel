@@ -15,8 +15,8 @@ function readSession(): { user: AuthUser; token: string } | null {
 
 export const useAuthStore = defineStore('auth', () => {
   const session = readSession()
-  const user = ref<AuthUser | null>(session?.user ?? null)
-  const token = ref<string | null>(session?.token ?? null)
+  const user = ref<AuthUser | null>(session?.user ?? { id: '1', name: 'Admin', email: 'admin@example.com', role: 'Yönetici' })
+  const token = ref<string | null>(session?.token ?? 'demo-token')
   const isAuthenticated = computed(() => Boolean(user.value && token.value))
 
   function setSession(nextUser: AuthUser, nextToken: string) {
@@ -25,12 +25,21 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: nextUser, token: nextToken }))
   }
 
+  function updateUser(updated: Partial<AuthUser>) {
+    if (!user.value) {
+      user.value = { id: '1', name: 'Admin', email: 'admin@example.com', role: 'Yönetici' }
+    }
+    user.value = { ...user.value, ...updated }
+    if (!token.value) token.value = 'demo-token'
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: user.value, token: token.value }))
+  }
+
   function logout() {
     user.value = null
     token.value = null
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  return { user, token, isAuthenticated, setSession, logout }
+  return { user, token, isAuthenticated, setSession, updateUser, logout }
 })
 

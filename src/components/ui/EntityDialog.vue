@@ -24,7 +24,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ close: []; save: [value: Record<string, unknown>]; confirmDelete: [] }>()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const draft = reactive<Record<string, unknown>>({})
 const isForm = computed(() => props.mode === 'create' || props.mode === 'edit')
 
@@ -40,8 +40,8 @@ function updateValue(field: EntityField, value?: string) {
 function displayValue(field: EntityField) {
   const value = draft[field.key]
   if (field.format === 'status') return t(`status.${String(value)}`)
-  if (field.format === 'currency') return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'USD' }).format(Number(value))
-  if (field.format === 'date' && value) return new Intl.DateTimeFormat('tr-TR').format(new Date(String(value)))
+  if (field.format === 'currency') return new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'USD' }).format(Number(value))
+  if (field.format === 'date' && value) return new Intl.DateTimeFormat(locale.value).format(new Date(String(value)))
   return String(value ?? '—')
 }
 </script>
@@ -62,7 +62,7 @@ function displayValue(field: EntityField) {
               <option value="" disabled>{{ t('common.select') }}</option>
               <option v-for="option in field.options" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
-            <Input v-else :model-value="String(draft[field.key] ?? '')" :type="field.type ?? 'text'" required @update:model-value="updateValue(field, $event)" />
+            <Input v-else :model-value="String(draft[field.key] ?? '')" :type="field.type ?? 'text'" required @update:model-value="updateValue(field, String($event))" />
           </label>
           <footer class="entity-dialog-actions">
             <Button type="button" variant="outline" @click="emit('close')">{{ t('common.cancel') }}</Button>
