@@ -25,13 +25,13 @@ const auth = useAuthStore()
 const { t } = useI18n()
 
 const navItems = computed(() => [
-  { label: 'Dashboard', to: '/', icon: LayoutDashboard },
-  { label: 'Users', to: '/users', icon: Users },
-  { label: 'Products', to: '/products', icon: Package },
-  { label: 'Orders', to: '/orders', icon: ShoppingCart },
-  { label: 'Analytics', to: '/users', icon: TrendingUp },
-  { label: 'Messages', to: '/orders', icon: Mail },
-  { label: 'Settings', to: '/settings', icon: Settings },
+  { label: t('nav.dashboard'), to: '/', icon: LayoutDashboard },
+  { label: t('nav.users'), to: '/users', icon: Users },
+  { label: t('nav.products'), to: '/products', icon: Package },
+  { label: t('nav.orders'), to: '/orders', icon: ShoppingCart },
+  { label: t('nav.analytics'), to: '/users', icon: TrendingUp },
+  { label: t('nav.messages'), to: '/orders', icon: Mail },
+  { label: t('nav.settings'), to: '/settings', icon: Settings },
 ])
 
 function handleLogout() {
@@ -64,7 +64,7 @@ function handleLogout() {
 
       <button type="button" class="nav-link logout-nav-btn" @click="handleLogout">
         <LogOut :size="18" />
-        <span>Logout</span>
+        <span>{{ t('common.logout') }}</span>
       </button>
     </nav>
   </aside>

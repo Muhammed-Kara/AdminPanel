@@ -14,7 +14,7 @@ const theme = useThemeStore()
 const { t } = useI18n()
 
 const pageName = computed(() => {
-  if (route.name === 'dashboard' || !route.name) return 'Dashboard'
+  if (route.name === 'dashboard' || !route.name) return t('nav.dashboard')
   return t(`nav.${String(route.name)}`)
 })
 </script>

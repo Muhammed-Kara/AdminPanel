@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import {
   Activity,
   ChevronDown,
@@ -8,28 +8,33 @@ import {
   ShoppingCart,
   Users
 } from '@lucide/vue'
+import { useI18n } from 'vue-i18n'
 import { Card, CardContent } from '@/components/ui/card'
+import PageHeader from '@/components/ui/PageHeader.vue'
 import RevenueAreaChart from '@/components/ui/RevenueAreaChart.vue'
 
-const selectedPeriod = ref('This Month')
+const { t } = useI18n()
+const selectedPeriod = computed(() => t('dashboard.currentMonth'))
 
-const stats = [
-  { key: 'users', label: 'Total Users', value: '12,540', change: '↑ 12.5%', icon: Users, color: 'purple' },
-  { key: 'orders', label: 'Total Orders', value: '8,320', change: '↑ 8.2%', icon: ShoppingCart, color: 'blue' },
-  { key: 'revenue', label: 'Total Revenue', value: '$24,820', change: '↑ 15.3%', icon: CreditCard, color: 'indigo' },
-  { key: 'active', label: 'Active Users', value: '1,320', change: '↑ 6.1%', icon: Activity, color: 'violet' },
-]
+const stats = computed(() => [
+  { key: 'users', label: t('dashboard.totalUsers'), value: '12,540', change: '↑ 12.5%', icon: Users, color: 'purple' },
+  { key: 'orders', label: t('dashboard.orders'), value: '8,320', change: '↑ 8.2%', icon: ShoppingCart, color: 'blue' },
+  { key: 'revenue', label: t('dashboard.revenue'), value: '$24,820', change: '↑ 15.3%', icon: CreditCard, color: 'indigo' },
+  { key: 'active', label: t('dashboard.activeUsers'), value: '1,320', change: '↑ 6.1%', icon: Activity, color: 'violet' },
+])
 
-const recentOrders = [
-  { id: '#12578', customer: 'John Doe', amount: '$120.00', status: 'Paid' },
-  { id: '#12577', customer: 'Jane Smith', amount: '$89.00', status: 'Paid' },
-  { id: '#12576', customer: 'Robert Brown', amount: '$149.00', status: 'Pending' },
-  { id: '#12575', customer: 'Emily Davis', amount: '$99.00', status: 'Paid' },
-]
+const recentOrders = computed(() => [
+  { id: '#12578', customer: 'Ahmet Yılmaz', amount: '$120.00', statusKey: 'delivered', statusLabel: t('status.delivered') },
+  { id: '#12577', customer: 'Ayşe Demir', amount: '$89.00', statusKey: 'delivered', statusLabel: t('status.delivered') },
+  { id: '#12576', customer: 'Mehmet Kaya', amount: '$149.00', statusKey: 'pending', statusLabel: t('status.pending') },
+  { id: '#12575', customer: 'Fatma Şahin', amount: '$99.00', statusKey: 'delivered', statusLabel: t('status.delivered') },
+])
 </script>
 
 <template>
   <div class="dashboard-page-shell">
+    <PageHeader :title="t('dashboard.title')" :description="t('dashboard.description')" />
+
     <!-- Stat Cards (4 Columns) -->
     <div class="dashboard-stats-grid">
       <Card v-for="stat in stats" :key="stat.key" class="dashboard-stat-card">
@@ -43,7 +48,7 @@ const recentOrders = [
           <strong class="stat-number-text">{{ stat.value }}</strong>
           <div class="stat-meta-row">
             <span class="stat-trend-text">{{ stat.change }}</span>
-            <span class="stat-period-text">vs last month</span>
+            <span class="stat-period-text">{{ t('dashboard.lastMonth') }}</span>
           </div>
         </CardContent>
       </Card>
@@ -54,7 +59,7 @@ const recentOrders = [
       <!-- Sales Overview Card -->
       <Card class="dashboard-chart-card">
         <div class="card-header-row">
-          <h2 class="card-heading-title">Sales Overview</h2>
+          <h2 class="card-heading-title">{{ t('dashboard.chartTitle') }}</h2>
           <div class="period-select-box">
             <span>{{ selectedPeriod }}</span>
             <ChevronDown :size="14" />
@@ -68,8 +73,8 @@ const recentOrders = [
       <!-- Recent Orders Card -->
       <Card class="dashboard-orders-card">
         <div class="card-header-row">
-          <h2 class="card-heading-title">Recent Orders</h2>
-          <button type="button" class="view-all-btn">View All</button>
+          <h2 class="card-heading-title">{{ t('dashboard.recentOrders') }}</h2>
+          <button type="button" class="view-all-btn">{{ t('dashboard.viewAll') }}</button>
         </div>
         <CardContent class="orders-list-wrapper">
           <div v-for="order in recentOrders" :key="order.id" class="recent-order-item">
@@ -84,9 +89,9 @@ const recentOrders = [
               <strong class="order-amount-text">{{ order.amount }}</strong>
               <span
                 class="order-status-badge"
-                :class="order.status === 'Paid' ? 'paid' : 'pending'"
+                :class="order.statusKey === 'delivered' ? 'paid' : 'pending'"
               >
-                {{ order.status }}
+                {{ order.statusLabel }}
               </span>
             </div>
           </div>

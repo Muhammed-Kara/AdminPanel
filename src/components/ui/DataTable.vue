@@ -39,9 +39,19 @@ watch(search, () => {
 
 const totalPages = computed(() => Math.ceil(filteredRows.value.length / pageSize.value) || 1)
 
+const visiblePages = computed(() => {
+  const count = Math.min(totalPages.value, 5)
+  const start = Math.max(1, Math.min(currentPage.value - 2, totalPages.value - count + 1))
+  return Array.from({ length: count }, (_, index) => start + index)
+})
+
 const paginatedRows = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   return filteredRows.value.slice(start, start + pageSize.value)
+})
+
+watch(totalPages, (total) => {
+  if (currentPage.value > total) currentPage.value = total
 })
 
 function goToPage(page: number) {
@@ -108,55 +118,38 @@ function handleAction(event: MouseEvent, action: 'view' | 'edit' | 'delete', row
     <div v-if="!loading" class="table-footer">
       <span class="record-info">{{ $t('common.recordCount', { count: filteredRows.length }) }}</span>
       <div class="pagination-bar">
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="currentPage <= 1"
-          @click="goToPage(1)"
-        >
-          <ChevronsLeft :size="15" />
-        </button>
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="currentPage <= 1"
-          @click="goToPage(currentPage - 1)"
-        >
-          <ChevronLeft :size="15" />
-        </button>
+        <div class="pagination-controls">
+          <button type="button" class="page-btn" :aria-label="$t('common.firstPage')" :disabled="currentPage <= 1" @click="goToPage(1)">
+            <ChevronsLeft :size="15" />
+          </button>
+          <button type="button" class="page-btn" :aria-label="$t('common.previous')" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">
+            <ChevronLeft :size="15" />
+          </button>
 
-        <button
-          v-for="p in totalPages"
-          :key="p"
-          type="button"
-          class="page-btn num-btn"
-          :class="{ active: currentPage === p }"
-          @click="goToPage(p)"
-        >
-          {{ p }}
-        </button>
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            type="button"
+            class="page-btn num-btn"
+            :class="{ active: currentPage === page }"
+            :aria-current="currentPage === page ? 'page' : undefined"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
 
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="currentPage >= totalPages"
-          @click="goToPage(currentPage + 1)"
-        >
-          <ChevronRight :size="15" />
-        </button>
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="currentPage >= totalPages"
-          @click="goToPage(totalPages)"
-        >
-          <ChevronsRight :size="15" />
-        </button>
+          <button type="button" class="page-btn" :aria-label="$t('common.next')" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
+            <ChevronRight :size="15" />
+          </button>
+          <button type="button" class="page-btn" :aria-label="$t('common.lastPage')" :disabled="currentPage >= totalPages" @click="goToPage(totalPages)">
+            <ChevronsRight :size="15" />
+          </button>
+        </div>
 
-        <select v-model.number="pageSize" class="page-size-select" @change="currentPage = 1">
-          <option :value="10">10</option>
-          <option :value="20">20</option>
-          <option :value="50">50</option>
+        <select v-model.number="pageSize" class="page-size-select" :aria-label="$t('common.pageSize')" @change="currentPage = 1">
+          <option :value="10">{{ $t('common.rowsPerPage', { count: 10 }) }}</option>
+          <option :value="20">{{ $t('common.rowsPerPage', { count: 20 }) }}</option>
+          <option :value="50">{{ $t('common.rowsPerPage', { count: 50 }) }}</option>
         </select>
       </div>
     </div>
