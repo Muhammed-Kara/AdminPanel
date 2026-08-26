@@ -1,81 +1,59 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Activity,
-  Check,
-  ChevronDown,
   CreditCard,
   ShoppingBag,
   ShoppingCart,
   Users
 } from '@lucide/vue'
+import { useQuery } from '@tanstack/vue-query'
 import { useI18n } from 'vue-i18n'
 import { Card, CardContent } from '@/components/ui/card'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import RevenueAreaChart from '@/components/ui/RevenueAreaChart.vue'
+import { dummyService } from '@/service/dummy/dummy-service'
 
 const router = useRouter()
 const { t } = useI18n()
+const { data: dashboardData, isPending } = useQuery({ queryKey: ['dashboard'], queryFn: dummyService.getDashboard })
 
-type PeriodKey = 'currentMonth' | 'last30Days' | 'last7Days' | 'thisYear'
+const statPresentation = {
+  revenue: { icon: CreditCard, color: 'indigo' },
+  orders: { icon: ShoppingCart, color: 'blue' },
+  products: { icon: ShoppingBag, color: 'purple' },
+  activeUsers: { icon: Activity, color: 'violet' },
+} as const
 
-const selectedPeriodKey = ref<PeriodKey>('currentMonth')
-const isPeriodDropdownOpen = ref(false)
+const stats = computed(() => (dashboardData.value?.stats ?? []).map((stat) => ({
+  ...stat,
+  label: t(`dashboard.${stat.key}`),
+  icon: statPresentation[stat.key as keyof typeof statPresentation]?.icon ?? Users,
+  color: statPresentation[stat.key as keyof typeof statPresentation]?.color ?? 'blue',
+})))
 
-const periodOptions: Array<{ key: PeriodKey; label: string }> = [
-  { key: 'currentMonth', label: t('dashboard.currentMonth') || 'Bu Ay' },
-  { key: 'last30Days', label: 'Son 30 Gün' },
-  { key: 'last7Days', label: 'Son 7 Gün' },
-  { key: 'thisYear', label: 'Bu Yıl' },
-]
+const recentOrders = computed(() => (dashboardData.value?.recentOrders ?? []).map((order) => ({
+  ...order,
+  statusLabel: t(`status.${order.status}`),
+})))
 
-const selectedPeriodLabel = computed(() => {
-  const opt = periodOptions.find((p) => p.key === selectedPeriodKey.value)
-  return opt ? opt.label : t('dashboard.currentMonth')
-})
-
-function selectPeriod(key: PeriodKey) {
-  selectedPeriodKey.value = key
-  isPeriodDropdownOpen.value = false
-}
-
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (!target.closest('.period-select-container')) {
-    isPeriodDropdownOpen.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
-
-const stats = computed(() => [
-  { key: 'users', label: t('dashboard.totalUsers'), value: '12,540', change: '↑ 12.5%', icon: Users, color: 'purple' },
-  { key: 'orders', label: t('dashboard.orders'), value: '8,320', change: '↑ 8.2%', icon: ShoppingCart, color: 'blue' },
-  { key: 'revenue', label: t('dashboard.revenue'), value: '$24,820', change: '↑ 15.3%', icon: CreditCard, color: 'indigo' },
-  { key: 'active', label: t('dashboard.activeUsers'), value: '1,320', change: '↑ 6.1%', icon: Activity, color: 'violet' },
-])
-
-const recentOrders = computed(() => [
-  { id: '#12578', customer: 'Ahmet Yılmaz', amount: '$120.00', statusKey: 'delivered', statusLabel: t('status.delivered') },
-  { id: '#12577', customer: 'Ayşe Demir', amount: '$89.00', statusKey: 'delivered', statusLabel: t('status.delivered') },
-  { id: '#12576', customer: 'Mehmet Kaya', amount: '$149.00', statusKey: 'pending', statusLabel: t('status.pending') },
-  { id: '#12575', customer: 'Fatma Şahin', amount: '$99.00', statusKey: 'delivered', statusLabel: t('status.delivered') },
-])
+const yearlyRevenue = computed(() => (dashboardData.value?.revenue ?? []).map((item) => ({
+  label: t(`months.${item.month}`),
+  val: item.revenue,
+})))
 </script>
 
 <template>
   <div class="dashboard-page-shell">
     <PageHeader :title="t('dashboard.title')" :description="t('dashboard.description')" />
 
+    <div v-if="isPending" class="loading-state dashboard-loading">
+      <span class="spinner" />{{ t('common.loading') }}
+    </div>
+
     <!-- Stat Cards (4 Columns) -->
-    <div class="dashboard-stats-grid">
+    <div v-else class="dashboard-stats-grid">
       <Card v-for="stat in stats" :key="stat.key" class="dashboard-stat-card">
         <CardContent>
           <div class="stat-card-top">
@@ -94,37 +72,19 @@ const recentOrders = computed(() => [
     </div>
 
     <!-- Chart + Orders Grid -->
-    <div class="dashboard-content-grid">
+    <div v-if="!isPending" class="dashboard-content-grid">
       <!-- Sales Overview Card -->
       <Card class="dashboard-chart-card">
         <div class="card-header-row">
           <h2 class="card-heading-title">{{ t('dashboard.chartTitle') }}</h2>
 
-          <!-- Interactive Period Selector Dropdown -->
-          <div class="period-select-container">
-            <div class="period-select-box" @click="isPeriodDropdownOpen = !isPeriodDropdownOpen">
-              <span>{{ selectedPeriodLabel }}</span>
-              <ChevronDown :size="14" :class="{ open: isPeriodDropdownOpen }" class="period-chevron" />
-            </div>
-
-            <div v-if="isPeriodDropdownOpen" class="period-dropdown-menu">
-              <button
-                v-for="opt in periodOptions"
-                :key="opt.key"
-                type="button"
-                class="period-dropdown-item"
-                :class="{ active: selectedPeriodKey === opt.key }"
-                @click="selectPeriod(opt.key)"
-              >
-                <span>{{ opt.label }}</span>
-                <Check v-if="selectedPeriodKey === opt.key" :size="14" />
-              </button>
-            </div>
+          <div class="period-select-box">
+            <span>{{ t('dashboard.period') }}</span>
           </div>
         </div>
 
         <CardContent>
-          <RevenueAreaChart :period-key="selectedPeriodKey" />
+          <RevenueAreaChart :items="yearlyRevenue" />
         </CardContent>
       </Card>
 
@@ -149,7 +109,7 @@ const recentOrders = computed(() => [
               <strong class="order-amount-text">{{ order.amount }}</strong>
               <span
                 class="order-status-badge"
-                :class="order.statusKey === 'delivered' ? 'paid' : 'pending'"
+                :class="order.status === 'pending' ? 'pending' : 'paid'"
               >
                 {{ order.statusLabel }}
               </span>

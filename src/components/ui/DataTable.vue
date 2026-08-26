@@ -14,6 +14,7 @@ import {
 } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useI18n } from 'vue-i18n'
 
 export interface TableColumn {
   key: string
@@ -26,6 +27,7 @@ const emit = defineEmits<{ view: [row: Record<string, unknown>]; edit: [row: Rec
 const search = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
+const { locale } = useI18n()
 
 const filteredRows = computed(() => {
   const term = search.value.trim().toLocaleLowerCase('tr')
@@ -62,8 +64,8 @@ function goToPage(page: number) {
 
 function cellValue(row: Record<string, unknown>, column: TableColumn) {
   const value = row[column.key]
-  if (column.format === 'currency') return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'USD' }).format(Number(value))
-  if (column.format === 'date') return new Intl.DateTimeFormat('tr-TR').format(new Date(String(value)))
+  if (column.format === 'currency') return new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'USD' }).format(Number(value))
+  if (column.format === 'date') return new Intl.DateTimeFormat(locale.value).format(new Date(String(value)))
   return String(value ?? '')
 }
 

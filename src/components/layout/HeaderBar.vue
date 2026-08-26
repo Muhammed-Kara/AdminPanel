@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, type Component } from 'vue'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Bell,
@@ -25,13 +26,19 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/store/auth'
 import { useThemeStore } from '@/store/theme'
 import { Button } from '@/components/ui/button'
+import { dummyService } from '@/service/dummy/dummy-service'
 
 defineEmits<{ 'toggle-menu': [] }>()
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const theme = useThemeStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const queryClient = useQueryClient()
+const { data: usersData } = useQuery({ queryKey: ['users'], queryFn: dummyService.getUsers })
+const { data: productsData } = useQuery({ queryKey: ['products'], queryFn: dummyService.getProducts })
+const { data: ordersData } = useQuery({ queryKey: ['orders'], queryFn: dummyService.getOrders })
+const { data: notificationsData } = useQuery({ queryKey: ['notifications'], queryFn: dummyService.getNotifications })
 
 const pageName = computed(() => {
   if (route.name === 'dashboard' || !route.name) return t('nav.dashboard')
@@ -39,7 +46,7 @@ const pageName = computed(() => {
 })
 
 const userInitials = computed(() => {
-  const name = auth.user?.name || 'Admin'
+  const name = auth.user?.name || t('roles.admin')
   const parts = name.trim().split(' ')
   if (parts.length >= 2) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
@@ -58,43 +65,62 @@ interface SearchResultItem {
   subtitle?: string
   category: 'pages' | 'orders' | 'products' | 'users'
   path: string
-  icon: any
+  icon: Component
 }
 
-const searchablePages: SearchResultItem[] = [
-  { id: 'p1', title: 'Dashboard', category: 'pages', path: '/dashboard', icon: LayoutDashboard },
-  { id: 'p2', title: 'Kullanıcılar / Users', category: 'pages', path: '/users', icon: Users },
-  { id: 'p3', title: 'Ürünler / Products', category: 'pages', path: '/products', icon: Package },
-  { id: 'p4', title: 'Siparişler / Orders', category: 'pages', path: '/orders', icon: ShoppingCart },
-  { id: 'p5', title: 'Ayarlar / Settings', category: 'pages', path: '/settings', icon: Settings },
-]
+const searchablePages = computed<SearchResultItem[]>(() => [
+  { id: 'page-dashboard', title: t('nav.dashboard'), category: 'pages', path: '/', icon: LayoutDashboard },
+  { id: 'page-users', title: t('nav.users'), category: 'pages', path: '/users', icon: Users },
+  { id: 'page-products', title: t('nav.products'), category: 'pages', path: '/products', icon: Package },
+  { id: 'page-orders', title: t('nav.orders'), category: 'pages', path: '/orders', icon: ShoppingCart },
+  { id: 'page-settings', title: t('nav.settings'), category: 'pages', path: '/settings', icon: Settings },
+])
 
-const searchableItems: SearchResultItem[] = [
-  { id: 'o1', title: '#12578 - Ahmet Yılmaz', subtitle: '$120.00 • Teslim Edildi', category: 'orders', path: '/orders', icon: ShoppingBag },
-  { id: 'o2', title: '#12577 - Ayşe Demir', subtitle: '$89.00 • Teslim Edildi', category: 'orders', path: '/orders', icon: ShoppingBag },
-  { id: 'o3', title: '#12576 - Mehmet Kaya', subtitle: '$149.00 • Bekliyor', category: 'orders', path: '/orders', icon: ShoppingBag },
-  { id: 'pr1', title: 'iPhone 15 Pro Max', subtitle: 'Stok: 42 • $1,199', category: 'products', path: '/products', icon: Package },
-  { id: 'pr2', title: 'MacBook Pro M3 16"', subtitle: 'Stok: 18 • $2,499', category: 'products', path: '/products', icon: Package },
-  { id: 'pr3', title: 'Wireless Noise Canceling Headphones', subtitle: 'Stok: 3 • $299', category: 'products', path: '/products', icon: Package },
-  { id: 'u1', title: 'Ahmet Yılmaz', subtitle: 'ahmet@example.com • Yönetici', category: 'users', path: '/users', icon: User },
-  { id: 'u2', title: 'Ayşe Demir', subtitle: 'ayse@example.com • Editör', category: 'users', path: '/users', icon: User },
-]
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'USD' }).format(value)
+}
+const searchableItems = computed<SearchResultItem[]>(() => [
+  ...(ordersData.value ?? []).slice(0, 4).map((order) => ({
+    id: `order-${order.id}`,
+    title: `${order.id} - ${order.customer}`,
+    subtitle: `${formatCurrency(order.total)} • ${t(`status.${order.status}`)}`,
+    category: 'orders' as const,
+    path: '/orders',
+    icon: ShoppingBag,
+  })),
+  ...(productsData.value ?? []).slice(0, 4).map((product) => ({
+    id: `product-${product.id}`,
+    title: product.name,
+    subtitle: `${t('products.stock')}: ${product.stock} • ${formatCurrency(product.price)}`,
+    category: 'products' as const,
+    path: '/products',
+    icon: Package,
+  })),
+  ...(usersData.value ?? []).slice(0, 4).map((user) => ({
+    id: `user-${user.id}`,
+    title: user.name,
+    subtitle: `${user.email} • ${t(`roles.${user.role}`)}`,
+    category: 'users' as const,
+    path: '/users',
+    icon: User,
+  })),
+])
 
 const filteredSearchResults = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   if (!query) {
-    return searchablePages
+    return searchablePages.value
   }
 
   const results: SearchResultItem[] = []
   
-  searchablePages.forEach(p => {
+  searchablePages.value.forEach(p => {
     if (p.title.toLowerCase().includes(query)) {
       results.push(p)
     }
   })
 
-  searchableItems.forEach(item => {
+  searchableItems.value.forEach(item => {
     if (
       item.title.toLowerCase().includes(query) ||
       (item.subtitle && item.subtitle.toLowerCase().includes(query))
@@ -119,52 +145,8 @@ function focusSearch() {
   searchInputRef.value?.focus()
 }
 
-// Notifications State & Functionality
 const isNotificationOpen = ref(false)
-
-interface NotificationItem {
-  id: number
-  title: string
-  description: string
-  time: string
-  read: boolean
-  type: 'order' | 'warning' | 'user' | 'system'
-}
-
-const notifications = ref<NotificationItem[]>([
-  {
-    id: 1,
-    title: 'Yeni Sipariş Alındı',
-    description: '#12578 - Ahmet Yılmaz ($120.00)',
-    time: '5 dk önce',
-    read: false,
-    type: 'order',
-  },
-  {
-    id: 2,
-    title: 'Stok Uyarısı',
-    description: 'Wireless Headphones stoku 3 adede düştü.',
-    time: '1 saat önce',
-    read: false,
-    type: 'warning',
-  },
-  {
-    id: 3,
-    title: 'Yeni Kullanıcı Kaydı',
-    description: 'Ayşe Demir sisteme üye oldu.',
-    time: '2 saat önce',
-    read: false,
-    type: 'user',
-  },
-  {
-    id: 4,
-    title: 'Sistem Güncellemesi',
-    description: 'Admin Panel v2.4 güncellemesi tamamlandı.',
-    time: '1 gün önce',
-    read: true,
-    type: 'system',
-  },
-])
+const notifications = computed(() => notificationsData.value ?? [])
 
 const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 
@@ -175,19 +157,25 @@ function toggleNotifications() {
 }
 
 function markAllAsRead() {
-  notifications.value.forEach(n => (n.read = true))
+  notificationMutation.mutate({ type: 'mark-all' })
 }
 
 function toggleRead(id: number) {
-  const item = notifications.value.find(n => n.id === id)
-  if (item) {
-    item.read = !item.read
-  }
+  notificationMutation.mutate({ type: 'toggle', id })
 }
 
 function clearAllNotifications() {
-  notifications.value = []
+  notificationMutation.mutate({ type: 'clear' })
 }
+
+const notificationMutation = useMutation({
+  mutationFn: async (action: { type: 'mark-all' | 'clear' } | { type: 'toggle'; id: number }) => {
+    if (action.type === 'mark-all') await dummyService.markAllNotificationsRead()
+    if (action.type === 'toggle') await dummyService.toggleNotification(action.id)
+    if (action.type === 'clear') await dummyService.clearNotifications()
+  },
+  onSuccess: async () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+})
 
 // Profile Dropdown State
 const isProfileOpen = ref(false)
@@ -254,7 +242,7 @@ onUnmounted(() => {
         <!-- Search Results Dropdown -->
         <div v-if="isSearchOpen" class="header-search-dropdown">
           <div v-if="filteredSearchResults.length === 0" class="search-empty-state">
-            <span>{{ t('common.noResults') || 'Sonuç bulunamadı' }}</span>
+            <span>{{ t('common.noResults') }}</span>
           </div>
           <div v-else class="search-results-list">
             <div
@@ -291,7 +279,7 @@ onUnmounted(() => {
           <div class="notification-header">
             <div class="notification-title-box">
               <strong>{{ t('common.notifications') }}</strong>
-              <span v-if="unreadCount > 0" class="unread-badge">{{ unreadCount }} yeni</span>
+              <span v-if="unreadCount > 0" class="unread-badge">{{ t('notifications.unread', { count: unreadCount }) }}</span>
             </div>
             <button
               v-if="unreadCount > 0"
@@ -300,12 +288,12 @@ onUnmounted(() => {
               @click="markAllAsRead"
             >
               <CheckCheck :size="14" />
-              <span>Tümünü Oku</span>
+              <span>{{ t('notifications.markAllRead') }}</span>
             </button>
           </div>
 
           <div v-if="notifications.length === 0" class="notification-empty">
-            <span>Henüz bildirim yok.</span>
+            <span>{{ t('notifications.empty') }}</span>
           </div>
 
           <div v-else class="notification-list">
@@ -318,9 +306,9 @@ onUnmounted(() => {
             >
               <div class="notif-status-dot" v-if="!notif.read" />
               <div class="notif-content">
-                <strong class="notif-title">{{ notif.title }}</strong>
-                <p class="notif-desc">{{ notif.description }}</p>
-                <span class="notif-time">{{ notif.time }}</span>
+                <strong class="notif-title">{{ t(notif.titleKey) }}</strong>
+                <p class="notif-desc">{{ t(notif.descriptionKey, notif.params) }}</p>
+                <span class="notif-time">{{ t(notif.timeKey, notif.timeParams) }}</span>
               </div>
             </div>
           </div>
@@ -328,7 +316,7 @@ onUnmounted(() => {
           <div v-if="notifications.length > 0" class="notification-footer">
             <button type="button" class="clear-all-btn" @click="clearAllNotifications">
               <Trash2 :size="13" />
-              <span>Tümünü Temizle</span>
+              <span>{{ t('notifications.clearAll') }}</span>
             </button>
           </div>
         </div>
@@ -341,28 +329,28 @@ onUnmounted(() => {
             <img v-if="auth.user?.avatar" :src="auth.user.avatar" class="avatar-circle-img" alt="Avatar" />
             <span v-else class="avatar-initials">{{ userInitials }}</span>
           </div>
-          <span class="user-name-text">{{ auth.user?.name || 'Admin' }}</span>
+          <span class="user-name-text">{{ auth.user?.name || t('roles.admin') }}</span>
           <ChevronDown :size="14" class="dropdown-icon" :class="{ open: isProfileOpen }" />
         </div>
 
         <div v-if="isProfileOpen" class="profile-dropdown">
           <div class="profile-dropdown-user">
-            <strong>{{ auth.user?.name || 'Admin' }}</strong>
-            <span>{{ auth.user?.email || 'admin@example.com' }}</span>
+            <strong>{{ auth.user?.name || t('roles.admin') }}</strong>
+            <span>{{ auth.user?.email || '' }}</span>
           </div>
           <div class="profile-dropdown-divider" />
           <button type="button" class="profile-dropdown-item" @click="navigateTo('/settings?tab=profile')">
             <User :size="15" />
-            <span>Profil Ayarları</span>
+            <span>{{ t('settings.profileTab') }}</span>
           </button>
           <button type="button" class="profile-dropdown-item" @click="navigateTo('/settings?tab=appearance')">
             <Palette :size="15" />
-            <span>Görünüm & Tema</span>
+            <span>{{ t('settings.themeTab') }}</span>
           </button>
           <div class="profile-dropdown-divider" />
           <button type="button" class="profile-dropdown-item danger" @click="handleLogout">
             <LogOut :size="15" />
-            <span>{{ t('common.logout') || 'Çıkış Yap' }}</span>
+            <span>{{ t('common.logout') }}</span>
           </button>
         </div>
       </div>

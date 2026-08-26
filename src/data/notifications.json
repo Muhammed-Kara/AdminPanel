@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "titleKey": "notifications.newOrder",
+    "descriptionKey": "notifications.newOrderDescription",
+    "params": { "order": "#3210", "customer": "Olivia Martin" },
+    "timeKey": "notifications.minutesAgo",
+    "timeParams": { "count": 5 },
+    "read": false,
+    "type": "order"
+  },
+  {
+    "id": 2,
+    "titleKey": "notifications.stockWarning",
+    "descriptionKey": "notifications.stockWarningDescription",
+    "params": { "product": "Wireless Headphones", "count": 3 },
+    "timeKey": "notifications.hoursAgo",
+    "timeParams": { "count": 1 },
+    "read": false,
+    "type": "warning"
+  },
+  {
+    "id": 3,
+    "titleKey": "notifications.systemUpdate",
+    "descriptionKey": "notifications.systemUpdateDescription",
+    "params": { "version": "2.4" },
+    "timeKey": "notifications.daysAgo",
+    "timeParams": { "count": 1 },
+    "read": true,
+    "type": "system"
+  }
+]

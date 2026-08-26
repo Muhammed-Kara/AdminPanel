@@ -24,7 +24,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ close: []; save: [value: Record<string, unknown>]; confirmDelete: [] }>()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const draft = reactive<Record<string, unknown>>({})
 const isForm = computed(() => props.mode === 'create' || props.mode === 'edit')
 
@@ -40,8 +40,8 @@ function updateValue(field: EntityField, value?: string) {
 function displayValue(field: EntityField) {
   const value = draft[field.key]
   if (field.format === 'status') return t(`status.${String(value)}`)
-  if (field.format === 'currency') return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'USD' }).format(Number(value))
-  if (field.format === 'date' && value) return new Intl.DateTimeFormat('tr-TR').format(new Date(String(value)))
+  if (field.format === 'currency') return new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'USD' }).format(Number(value))
+  if (field.format === 'date' && value) return new Intl.DateTimeFormat(locale.value).format(new Date(String(value)))
   return String(value ?? '—')
 }
 </script>

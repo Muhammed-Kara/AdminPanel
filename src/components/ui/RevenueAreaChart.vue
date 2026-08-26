@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch, useId } from 'vue'
-import { useThemeStore } from '@/store/theme'
+import { useI18n } from 'vue-i18n'
 
 interface RevenuePoint {
   label: string
@@ -10,15 +10,11 @@ interface RevenuePoint {
 const props = withDefaults(
   defineProps<{
     items?: RevenuePoint[]
-    periodKey?: string
   }>(),
   {
     items: () => [],
-    periodKey: 'currentMonth'
   }
 )
-
-const theme = useThemeStore()
 
 const width = 640
 const height = 240
@@ -26,89 +22,24 @@ const plot = { top: 30, right: 20, bottom: 35, left: 45 }
 const plotWidth = width - plot.left - plot.right
 const plotHeight = height - plot.top - plot.bottom
 const gradientId = `chart-grad-${useId().replaceAll(':', '')}`
+const { locale } = useI18n()
 
-const chartColors = computed(() => {
-  if (theme.isDark) {
-    return {
-      gradientStart: '#38bdf8',
-      gradientEnd: '#6366f1',
-      stroke: '#38bdf8',
-      filter: 'drop-shadow(0px 4px 12px rgba(56, 189, 248, 0.45))',
-      guideStroke: 'rgba(56, 189, 248, 0.45)',
-      ringFill: '#151c2e',
-      ringStroke: '#38bdf8',
-      dotFill: '#ffffff',
-      tooltipBg: '#0f172a',
-      tooltipBorder: 'rgba(56, 189, 248, 0.4)',
-      gridStroke: 'rgba(255,255,255,0.07)',
-      textFill: '#94a3b8',
-    }
-  }
-  // Light mode - Koyu lacivert
-  return {
-    gradientStart: '#0f172a',
-    gradientEnd: '#1e293b',
-    stroke: '#0f172a',
-    filter: 'drop-shadow(0px 4px 8px rgba(15, 23, 42, 0.25))',
-    guideStroke: 'rgba(15, 23, 42, 0.35)',
-    ringFill: '#ffffff',
-    ringStroke: '#0f172a',
-    dotFill: '#0f172a',
-    tooltipBg: '#0f172a',
-    tooltipBorder: 'rgba(15, 23, 42, 0.25)',
-    gridStroke: 'rgba(15, 23, 42, 0.08)',
-    textFill: '#64748b',
-  }
-})
-
-// Dynamic dataset based on periodKey or custom items prop
-const defaultDatasets: Record<string, RevenuePoint[]> = {
-  currentMonth: [
-    { label: '01', val: 5000 },
-    { label: '05', val: 18000 },
-    { label: '10', val: 12000 },
-    { label: '15', val: 23620 },
-    { label: '20', val: 17000 },
-    { label: '25', val: 28000 },
-    { label: '30', val: 21000 },
-  ],
-  last30Days: [
-    { label: 'Hafta 1', val: 14200 },
-    { label: 'Hafta 2', val: 21500 },
-    { label: 'Hafta 3', val: 18900 },
-    { label: 'Hafta 4', val: 29400 },
-  ],
-  last7Days: [
-    { label: 'Pzt', val: 3200 },
-    { label: 'Sal', val: 4500 },
-    { label: 'Çar', val: 6100 },
-    { label: 'Per', val: 5400 },
-    { label: 'Cum', val: 7800 },
-    { label: 'Cmt', val: 9200 },
-    { label: 'Paz', val: 8400 },
-  ],
-  thisYear: [
-    { label: 'Oca', val: 18000 },
-    { label: 'Şub', val: 24000 },
-    { label: 'Mar', val: 29000 },
-    { label: 'Nis', val: 22000 },
-    { label: 'May', val: 34000 },
-    { label: 'Haz', val: 38000 },
-    { label: 'Tem', val: 31000 },
-    { label: 'Ağu', val: 42000 },
-    { label: 'Eyl', val: 39000 },
-    { label: 'Eki', val: 45000 },
-    { label: 'Kas', val: 48000 },
-    { label: 'Ara', val: 52000 },
-  ],
+const chartColors = {
+  gradientStart: 'var(--chart-start)',
+  gradientEnd: 'var(--chart-end)',
+  stroke: 'var(--chart-start)',
+  filter: 'drop-shadow(0 4px 8px color-mix(in srgb, var(--chart-start) 24%, transparent))',
+  guideStroke: 'color-mix(in srgb, var(--chart-start) 42%, transparent)',
+  ringFill: 'var(--surface)',
+  ringStroke: 'var(--chart-start)',
+  dotFill: 'var(--foreground)',
+  tooltipBg: 'var(--foreground)',
+  tooltipBorder: 'var(--border)',
+  gridStroke: 'color-mix(in srgb, var(--border) 72%, transparent)',
+  textFill: 'var(--muted)',
 }
 
-const chartData = computed(() => {
-  if (props.items && props.items.length > 0) {
-    return props.items
-  }
-  return defaultDatasets[props.periodKey] || defaultDatasets.currentMonth
-})
+const chartData = computed(() => props.items)
 
 const maxYValue = computed(() => {
   const maxVal = Math.max(...chartData.value.map((d) => d.val), 10000)
@@ -196,7 +127,7 @@ function handlePointerMove(event: MouseEvent | TouchEvent) {
 }
 
 function formatCurrency(val: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val)
+  return new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val)
 }
 </script>
 
@@ -275,7 +206,7 @@ function formatCurrency(val: number) {
         <!-- Floating Tooltip Card -->
         <g :transform="`translate(${Math.max(plot.left, Math.min(width - plot.right - 80, activePoint.x - 40))}, ${Math.max(10, activePoint.y - 38)})`">
           <rect width="80" height="26" rx="6" :fill="chartColors.tooltipBg" :stroke="chartColors.tooltipBorder" />
-          <text x="40" y="17" fill="#ffffff" font-size="11" font-weight="600" text-anchor="middle">
+          <text x="40" y="17" fill="var(--background)" font-size="11" font-weight="600" text-anchor="middle">
             {{ formatCurrency(activePoint.val) }}
           </text>
         </g>

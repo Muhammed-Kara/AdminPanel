@@ -37,3 +37,13 @@ export interface DashboardData {
   recentOrders: Array<{ id: string; customer: string; status: string; amount: string }>
 }
 
+export interface NotificationItem {
+  id: number
+  titleKey: string
+  descriptionKey: string
+  params: Record<string, string | number>
+  timeKey: string
+  timeParams: Record<string, string | number>
+  read: boolean
+  type: 'order' | 'warning' | 'user' | 'system'
+}

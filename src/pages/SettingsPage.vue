@@ -47,9 +47,9 @@ function switchTab(tab: 'appearance' | 'profile' | 'general') {
 }
 
 // Profile State synced with Auth Store
-const fullName = ref(auth.user?.name || 'Admin User')
-const email = ref(auth.user?.email || 'admin@example.com')
-const role = ref(auth.user?.role || 'Sistem Yöneticisi')
+const fullName = ref(auth.user?.name || t('roles.admin'))
+const email = ref(auth.user?.email || '')
+const role = ref(auth.user?.role || t('roles.admin'))
 const avatarUrl = ref<string | null>(auth.user?.avatar || null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -67,7 +67,7 @@ watch(
 )
 
 const userInitials = computed(() => {
-  const name = fullName.value || 'Admin User'
+  const name = fullName.value || t('roles.admin')
   const parts = name.trim().split(' ')
   if (parts.length >= 2) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
@@ -175,7 +175,7 @@ function saveCroppedImage() {
     isCropModalOpen.value = false
     rawImageSrc.value = null
     if (fileInput.value) fileInput.value.value = ''
-    toast.success('Profil fotoğrafı kırpıldı ve güncellendi.')
+    toast.success(t('toast.avatarCropped'))
   }
   img.src = rawImageSrc.value
 }
@@ -233,7 +233,7 @@ function updatePassword() {
 }
 
 function logoutOtherDevices() {
-  toast.success(t('common.actions') + ': Tüm cihaz oturumları başarıyla sonlandırıldı.')
+  toast.success(t('toast.sessionsClosed'))
 }
 </script>
 
@@ -241,7 +241,7 @@ function logoutOtherDevices() {
   <PageHeader :title="t('settings.title')" :description="t('settings.description')" />
 
   <!-- Settings Top Navbar (3 Tabs) -->
-  <nav class="settings-nav-bar" aria-label="Settings Navigation">
+  <nav class="settings-nav-bar" :aria-label="t('settings.navigationLabel')">
     <button
       type="button"
       :class="{ active: activeTab === 'appearance' }"
@@ -313,7 +313,7 @@ function logoutOtherDevices() {
         </div>
         <div class="avatar-upload-box">
           <div class="avatar-preview">
-            <img v-if="avatarUrl" :src="avatarUrl" alt="Avatar" />
+            <img v-if="avatarUrl" :src="avatarUrl" :alt="t('settings.profile.avatar')" />
             <span v-else>{{ userInitials }}</span>
           </div>
           <input
@@ -404,7 +404,7 @@ function logoutOtherDevices() {
               type="button"
               class="switch"
               :class="{ on: twoFactor }"
-              @click="twoFactor = !twoFactor; toast.success(twoFactor ? '2FA Aktif edildi.' : '2FA Devre dışı.')"
+              @click="twoFactor = !twoFactor; toast.success(t(twoFactor ? 'toast.twoFactorEnabled' : 'toast.twoFactorDisabled'))"
             >
               <i />
             </button>
@@ -432,8 +432,8 @@ function logoutOtherDevices() {
   <div v-if="isCropModalOpen" class="dialog-layer" @click.self="isCropModalOpen = false">
     <div class="crop-modal-card">
       <div class="crop-modal-header">
-        <h3>Profil Fotoğrafını Kırp ve Hizala</h3>
-        <button type="button" class="crop-modal-close" @click="isCropModalOpen = false">
+        <h3>{{ t('settings.profile.cropTitle') }}</h3>
+        <button type="button" class="crop-modal-close" :aria-label="t('common.close')" @click="isCropModalOpen = false">
           <X :size="18" />
         </button>
       </div>
@@ -458,7 +458,7 @@ function logoutOtherDevices() {
               transform: `translate(${cropOffsetX}px, ${cropOffsetY}px) rotate(${cropRotation}deg) scale(${zoomScale})`,
               width: '100%'
             }"
-            alt="Raw Image"
+            :alt="t('settings.profile.cropPreview')"
           />
           <div class="crop-circle-mask" />
         </div>
@@ -466,7 +466,7 @@ function logoutOtherDevices() {
         <!-- Adjustment Controls (Zoom & Rotate) -->
         <div class="crop-controls">
           <div class="crop-control-row">
-            <label>Yakınlaştırma (Ölçek): {{ Math.round(zoomScale * 100) }}%</label>
+            <label>{{ t('settings.profile.zoom') }}: {{ Math.round(zoomScale * 100) }}%</label>
             <input
               v-model.number="zoomScale"
               type="range"
@@ -477,9 +477,9 @@ function logoutOtherDevices() {
             />
           </div>
           <div class="crop-control-row">
-            <span>Yön: {{ cropRotation }}°</span>
+            <span>{{ t('settings.profile.rotation') }}: {{ cropRotation }}°</span>
             <button type="button" class="secondary-button small-btn" @click="rotateImage">
-              <RotateCw :size="14" /> Döndür (90°)
+              <RotateCw :size="14" /> {{ t('settings.profile.rotate') }}
             </button>
           </div>
         </div>
@@ -487,10 +487,10 @@ function logoutOtherDevices() {
 
       <div class="crop-modal-footer">
         <button type="button" class="secondary-button" @click="isCropModalOpen = false">
-          İptal
+          {{ t('common.cancel') }}
         </button>
         <button type="button" class="primary-button" @click="saveCroppedImage">
-          <Crop :size="15" /> Kırp ve Kaydet
+          <Crop :size="15" /> {{ t('settings.profile.cropSave') }}
         </button>
       </div>
     </div>

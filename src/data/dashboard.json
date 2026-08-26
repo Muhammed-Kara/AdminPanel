@@ -6,18 +6,18 @@
     { "key": "activeUsers", "value": "573", "change": "+8.2%", "trend": "up" }
   ],
   "revenue": [
-    { "month": "Oca", "revenue": 4000, "orders": 240 },
-    { "month": "Şub", "revenue": 3000, "orders": 210 },
-    { "month": "Mar", "revenue": 5000, "orders": 290 },
-    { "month": "Nis", "revenue": 4500, "orders": 260 },
-    { "month": "May", "revenue": 6000, "orders": 340 },
-    { "month": "Haz", "revenue": 5500, "orders": 310 },
-    { "month": "Tem", "revenue": 7000, "orders": 380 },
-    { "month": "Ağu", "revenue": 6500, "orders": 350 },
-    { "month": "Eyl", "revenue": 8000, "orders": 420 },
-    { "month": "Eki", "revenue": 7500, "orders": 400 },
-    { "month": "Kas", "revenue": 9000, "orders": 450 },
-    { "month": "Ara", "revenue": 8500, "orders": 430 }
+    { "month": "jan", "revenue": 4000, "orders": 240 },
+    { "month": "feb", "revenue": 3000, "orders": 210 },
+    { "month": "mar", "revenue": 5000, "orders": 290 },
+    { "month": "apr", "revenue": 4500, "orders": 260 },
+    { "month": "may", "revenue": 6000, "orders": 340 },
+    { "month": "jun", "revenue": 5500, "orders": 310 },
+    { "month": "jul", "revenue": 7000, "orders": 380 },
+    { "month": "aug", "revenue": 6500, "orders": 350 },
+    { "month": "sep", "revenue": 8000, "orders": 420 },
+    { "month": "oct", "revenue": 7500, "orders": 400 },
+    { "month": "nov", "revenue": 9000, "orders": 450 },
+    { "month": "dec", "revenue": 8500, "orders": 430 }
   ],
   "recentOrders": [
     { "id": "#3210", "customer": "Olivia Martin", "status": "shipped", "amount": "$42.25" },
@@ -26,4 +26,3 @@
     { "id": "#3207", "customer": "Lisa Anderson", "status": "pending", "amount": "$89.50" }
   ]
 }
-

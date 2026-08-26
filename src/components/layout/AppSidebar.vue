@@ -45,7 +45,7 @@ function handleLogout() {
   <aside class="sidebar" :class="{ 'sidebar-open': open }">
     <div class="sidebar-brand">
       <div class="brand-icon"><Shield :size="20" /></div>
-      <div><strong>Admin Panel</strong></div>
+      <div><strong>{{ t('brand') }}</strong></div>
       <Button class="mobile-close" variant="ghost" size="icon" :aria-label="t('common.closeMenu')" @click="emit('close')"><X :size="19" /></Button>
     </div>
 

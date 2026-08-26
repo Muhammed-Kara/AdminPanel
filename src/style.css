@@ -1508,6 +1508,92 @@ input::placeholder { color: var(--muted) !important; opacity: 1; }
 .dark .ui-card-title,
 .dark .card-heading-title { color: var(--foreground) !important; }
 
+/* Ferah yerleşim: hiyerarşi yoğun border yerine boşluk ve yüzey tonuyla kurulur. */
+.page-container { padding: 40px 44px 56px; }
+.page-header { min-height: 64px; margin-bottom: 30px; align-items: flex-end; }
+.page-header h1 { font-size: 27px; }
+.page-header p { max-width: 680px; margin-top: 7px; }
+
+.ui-card,
+.card,
+.table-card,
+.settings-grid,
+.appearance-setting {
+  border-color: transparent !important;
+  box-shadow: 0 1px 2px rgba(15, 24, 42, 0.035), 0 12px 32px rgba(15, 24, 42, 0.045) !important;
+}
+.dark .ui-card,
+.dark .card,
+.dark .table-card,
+.dark .settings-grid,
+.dark .appearance-setting {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.025), 0 14px 34px rgba(0, 0, 0, 0.14) !important;
+}
+
+.dashboard-stats-grid,
+.dashboard-content-grid { gap: 20px; }
+.dashboard-content-grid { margin-top: 20px; }
+.dashboard-stat-card .ui-card-content { padding: 22px; }
+.dashboard-chart-card .ui-card-content,
+.dashboard-orders-card .ui-card-content { padding: 18px 24px 24px; }
+.card-header-row { padding: 24px 24px 8px; }
+
+.table-toolbar {
+  height: 70px;
+  padding: 0 22px;
+  border-bottom-color: transparent !important;
+}
+.table-scroll { padding: 0 10px; }
+.table-card th {
+  padding: 0 14px;
+  background: transparent !important;
+  border-bottom-color: color-mix(in srgb, var(--border) 60%, transparent) !important;
+}
+.table-card td {
+  height: 62px;
+  padding: 0 14px;
+  border-bottom-color: color-mix(in srgb, var(--border) 48%, transparent) !important;
+}
+.table-footer {
+  min-height: 66px;
+  padding: 12px 22px;
+  border-top-color: color-mix(in srgb, var(--border) 48%, transparent) !important;
+}
+.pagination-controls {
+  border-color: transparent !important;
+  background: var(--surface-soft) !important;
+}
+.page-btn,
+.table-footer .page-btn { border-right-color: color-mix(in srgb, var(--border) 60%, transparent) !important; }
+
+.settings-nav-bar { margin-bottom: 24px; }
+.settings-grid { gap: 16px; background: transparent !important; box-shadow: none !important; }
+.appearance-content { display: grid; gap: 16px; background: transparent !important; }
+.appearance-setting {
+  min-height: 124px;
+  padding: 27px 28px;
+  background: var(--surface) !important;
+  border-bottom-color: transparent !important;
+}
+.appearance-setting > div:first-child span { margin-top: 7px; line-height: 1.65; }
+
+.sidebar { border-right-color: color-mix(in srgb, var(--border) 68%, transparent) !important; }
+.sidebar-brand,
+.topbar { border-color: color-mix(in srgb, var(--border) 68%, transparent) !important; }
+.topbar { padding-inline: 30px; }
+
+@media (max-width: 800px) {
+  .page-container { padding: 28px 20px 42px; }
+  .page-header { min-height: 0; margin-bottom: 24px; }
+  .table-scroll { padding: 0; }
+}
+
+@media (max-width: 560px) {
+  .page-container { padding: 24px 16px 36px; }
+  .page-header h1 { font-size: 24px; }
+  .appearance-setting { min-height: 0; padding: 22px 18px; }
+}
+
 /* Header Search Dropdown Styles */
 .header-search-box { position: relative; display: flex; align-items: center; }
 .header-search-input-wrapper { display: flex; align-items: center; gap: 8px; width: 200px; height: 36px; padding: 0 12px; background: var(--surface-soft); border: 1px solid var(--border); border-radius: 999px; transition: all 0.2s ease; }
@@ -1805,4 +1891,12 @@ select optgroup {
   color: var(--primary);
   font-weight: 650;
   background: var(--primary-soft);
+}
+
+/* Bütün geç eklenen bileşenlerde de sabit köşe ölçüsünü koru. */
+#app,
+#app *,
+#app *::before,
+#app *::after {
+  border-radius: 2.5px !important;
 }

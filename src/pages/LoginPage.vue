@@ -451,7 +451,7 @@ async function submit() {
 .preview-chart { border-color: var(--border) !important; background: repeating-linear-gradient(to bottom, var(--border) 0, var(--border) 1px, transparent 1px, transparent 38px) !important; }
 .preview-chart span { background: linear-gradient(to top, var(--chart-end), var(--chart-start)) !important; }
 
-.auth-card { color: var(--foreground) !important; background: var(--surface) !important; border-color: var(--border) !important; box-shadow: 0 24px 60px color-mix(in srgb, var(--foreground) 10%, transparent) !important; }
+.auth-card { color: var(--foreground) !important; background: var(--surface) !important; border-color: transparent !important; box-shadow: 0 24px 60px color-mix(in srgb, var(--foreground) 9%, transparent) !important; }
 .auth-mark { color: var(--accent) !important; }
 .auth-heading h1 { color: var(--foreground) !important; -webkit-text-fill-color: var(--foreground); }
 .auth-heading p { color: var(--muted) !important; -webkit-text-fill-color: var(--muted); }
