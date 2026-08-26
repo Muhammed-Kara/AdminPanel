@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   Activity,
+  Check,
   ChevronDown,
   CreditCard,
   ShoppingBag,
@@ -13,8 +15,45 @@ import { Card, CardContent } from '@/components/ui/card'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import RevenueAreaChart from '@/components/ui/RevenueAreaChart.vue'
 
+const router = useRouter()
 const { t } = useI18n()
-const selectedPeriod = computed(() => t('dashboard.currentMonth'))
+
+type PeriodKey = 'currentMonth' | 'last30Days' | 'last7Days' | 'thisYear'
+
+const selectedPeriodKey = ref<PeriodKey>('currentMonth')
+const isPeriodDropdownOpen = ref(false)
+
+const periodOptions: Array<{ key: PeriodKey; label: string }> = [
+  { key: 'currentMonth', label: t('dashboard.currentMonth') || 'Bu Ay' },
+  { key: 'last30Days', label: 'Son 30 Gün' },
+  { key: 'last7Days', label: 'Son 7 Gün' },
+  { key: 'thisYear', label: 'Bu Yıl' },
+]
+
+const selectedPeriodLabel = computed(() => {
+  const opt = periodOptions.find((p) => p.key === selectedPeriodKey.value)
+  return opt ? opt.label : t('dashboard.currentMonth')
+})
+
+function selectPeriod(key: PeriodKey) {
+  selectedPeriodKey.value = key
+  isPeriodDropdownOpen.value = false
+}
+
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (!target.closest('.period-select-container')) {
+    isPeriodDropdownOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 const stats = computed(() => [
   { key: 'users', label: t('dashboard.totalUsers'), value: '12,540', change: '↑ 12.5%', icon: Users, color: 'purple' },
@@ -60,13 +99,32 @@ const recentOrders = computed(() => [
       <Card class="dashboard-chart-card">
         <div class="card-header-row">
           <h2 class="card-heading-title">{{ t('dashboard.chartTitle') }}</h2>
-          <div class="period-select-box">
-            <span>{{ selectedPeriod }}</span>
-            <ChevronDown :size="14" />
+
+          <!-- Interactive Period Selector Dropdown -->
+          <div class="period-select-container">
+            <div class="period-select-box" @click="isPeriodDropdownOpen = !isPeriodDropdownOpen">
+              <span>{{ selectedPeriodLabel }}</span>
+              <ChevronDown :size="14" :class="{ open: isPeriodDropdownOpen }" class="period-chevron" />
+            </div>
+
+            <div v-if="isPeriodDropdownOpen" class="period-dropdown-menu">
+              <button
+                v-for="opt in periodOptions"
+                :key="opt.key"
+                type="button"
+                class="period-dropdown-item"
+                :class="{ active: selectedPeriodKey === opt.key }"
+                @click="selectPeriod(opt.key)"
+              >
+                <span>{{ opt.label }}</span>
+                <Check v-if="selectedPeriodKey === opt.key" :size="14" />
+              </button>
+            </div>
           </div>
         </div>
+
         <CardContent>
-          <RevenueAreaChart />
+          <RevenueAreaChart :period-key="selectedPeriodKey" />
         </CardContent>
       </Card>
 
@@ -74,7 +132,9 @@ const recentOrders = computed(() => [
       <Card class="dashboard-orders-card">
         <div class="card-header-row">
           <h2 class="card-heading-title">{{ t('dashboard.recentOrders') }}</h2>
-          <button type="button" class="view-all-btn">{{ t('dashboard.viewAll') }}</button>
+          <button type="button" class="view-all-btn" @click="router.push('/orders')">
+            {{ t('dashboard.viewAll') }}
+          </button>
         </div>
         <CardContent class="orders-list-wrapper">
           <div v-for="order in recentOrders" :key="order.id" class="recent-order-item">

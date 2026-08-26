@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed, ref, watch, useId } from 'vue'
 import { useThemeStore } from '@/store/theme'
 
 interface RevenuePoint {
-  month: string
-  revenue: number
+  label: string
+  val: number
 }
 
-const props = defineProps<{
-  items?: RevenuePoint[]
-  locale?: string
-  currentLabel?: string
-  averageLabel?: string
-  accessibleLabel?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    items?: RevenuePoint[]
+    periodKey?: string
+  }>(),
+  {
+    items: () => [],
+    periodKey: 'currentMonth'
+  }
+)
 
 const theme = useThemeStore()
 
@@ -58,37 +61,86 @@ const chartColors = computed(() => {
   }
 })
 
-// Mock data matching the photo: 01, 05, 10, 15, 20, 25, 30 with 40K y-max
-const chartData = computed(() => [
-  { label: '01', val: 5000 },
-  { label: '05', val: 18000 },
-  { label: '10', val: 12000 },
-  { label: '15', val: 23620, tooltip: true },
-  { label: '20', val: 17000 },
-  { label: '25', val: 28000 },
-  { label: '30', val: 21000 },
-])
+// Dynamic dataset based on periodKey or custom items prop
+const defaultDatasets: Record<string, RevenuePoint[]> = {
+  currentMonth: [
+    { label: '01', val: 5000 },
+    { label: '05', val: 18000 },
+    { label: '10', val: 12000 },
+    { label: '15', val: 23620 },
+    { label: '20', val: 17000 },
+    { label: '25', val: 28000 },
+    { label: '30', val: 21000 },
+  ],
+  last30Days: [
+    { label: 'Hafta 1', val: 14200 },
+    { label: 'Hafta 2', val: 21500 },
+    { label: 'Hafta 3', val: 18900 },
+    { label: 'Hafta 4', val: 29400 },
+  ],
+  last7Days: [
+    { label: 'Pzt', val: 3200 },
+    { label: 'Sal', val: 4500 },
+    { label: 'Çar', val: 6100 },
+    { label: 'Per', val: 5400 },
+    { label: 'Cum', val: 7800 },
+    { label: 'Cmt', val: 9200 },
+    { label: 'Paz', val: 8400 },
+  ],
+  thisYear: [
+    { label: 'Oca', val: 18000 },
+    { label: 'Şub', val: 24000 },
+    { label: 'Mar', val: 29000 },
+    { label: 'Nis', val: 22000 },
+    { label: 'May', val: 34000 },
+    { label: 'Haz', val: 38000 },
+    { label: 'Tem', val: 31000 },
+    { label: 'Ağu', val: 42000 },
+    { label: 'Eyl', val: 39000 },
+    { label: 'Eki', val: 45000 },
+    { label: 'Kas', val: 48000 },
+    { label: 'Ara', val: 52000 },
+  ],
+}
 
-const yTicks = [
-  { label: '40K', val: 40000, y: plot.top },
-  { label: '30K', val: 30000, y: plot.top + plotHeight * 0.25 },
-  { label: '20K', val: 20000, y: plot.top + plotHeight * 0.5 },
-  { label: '10K', val: 10000, y: plot.top + plotHeight * 0.75 },
-  { label: '0', val: 0, y: plot.top + plotHeight },
-]
+const chartData = computed(() => {
+  if (props.items && props.items.length > 0) {
+    return props.items
+  }
+  return defaultDatasets[props.periodKey] || defaultDatasets.currentMonth
+})
+
+const maxYValue = computed(() => {
+  const maxVal = Math.max(...chartData.value.map((d) => d.val), 10000)
+  return Math.ceil(maxVal / 10000) * 10000
+})
+
+const yTicks = computed(() => {
+  const max = maxYValue.value
+  const step = max / 4
+  return [
+    { label: `${max / 1000}K`, val: max, y: plot.top },
+    { label: `${(step * 3) / 1000}K`, val: step * 3, y: plot.top + plotHeight * 0.25 },
+    { label: `${(step * 2) / 1000}K`, val: step * 2, y: plot.top + plotHeight * 0.5 },
+    { label: `${step / 1000}K`, val: step, y: plot.top + plotHeight * 0.75 },
+    { label: '0', val: 0, y: plot.top + plotHeight },
+  ]
+})
 
 const points = computed(() => {
   const count = chartData.value.length
+  const max = maxYValue.value
   return chartData.value.map((d, i) => {
-    const x = plot.left + (i * plotWidth) / (count - 1)
-    const y = plot.top + plotHeight - (d.val / 40000) * plotHeight
+    const x = plot.left + (i * plotWidth) / (count - 1 || 1)
+    const y = plot.top + plotHeight - (d.val / max) * plotHeight
     return { ...d, x, y }
   })
 })
 
 const linePath = computed(() => {
   const pts = points.value
-  if (pts.length < 2) return ''
+  if (pts.length === 0) return ''
+  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`
   let d = `M ${pts[0].x} ${pts[0].y}`
   for (let i = 0; i < pts.length - 1; i++) {
     const curr = pts[i]
@@ -100,22 +152,66 @@ const linePath = computed(() => {
 })
 
 const areaPath = computed(() => {
-  if (!linePath.value) return ''
+  if (!linePath.value || points.value.length === 0) return ''
   const first = points.value[0]
   const last = points.value[points.value.length - 1]
   const baseline = plot.top + plotHeight
   return `${linePath.value} L ${last.x} ${baseline} L ${first.x} ${baseline} Z`
 })
 
-const activePoint = computed(() => points.value.find((p) => p.tooltip) || points.value[3])
+// Active Hover Index State
+const activeIndex = ref<number>(Math.floor((chartData.value.length - 1) / 2))
+
+watch(chartData, (newData) => {
+  activeIndex.value = Math.floor((newData.length - 1) / 2)
+})
+
+const activePoint = computed(() => {
+  const pts = points.value
+  if (pts.length === 0) return null
+  return pts[activeIndex.value] || pts[0]
+})
+
+function handlePointerMove(event: MouseEvent | TouchEvent) {
+  const svg = (event.currentTarget as HTMLElement).closest('svg') as SVGSVGElement | null
+  if (!svg) return
+
+  const rect = svg.getBoundingClientRect()
+  const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX
+  const mouseX = clientX - rect.left
+  const viewBoxX = (mouseX / rect.width) * width
+
+  let closestIndex = 0
+  let minDistance = Infinity
+
+  points.value.forEach((pt, idx) => {
+    const dist = Math.abs(pt.x - viewBoxX)
+    if (dist < minDistance) {
+      minDistance = dist
+      closestIndex = idx
+    }
+  })
+
+  activeIndex.value = closestIndex
+}
+
+function formatCurrency(val: number) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val)
+}
 </script>
 
 <template>
   <div class="area-chart-shell">
-    <svg class="revenue-area-chart" :viewBox="`0 0 ${width} ${height}`" role="img">
+    <svg
+      class="revenue-area-chart"
+      :viewBox="`0 0 ${width} ${height}`"
+      role="img"
+      @mousemove="handlePointerMove"
+      @touchmove.prevent="handlePointerMove"
+    >
       <defs>
         <linearGradient :id="gradientId" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" :stop-color="chartColors.gradientStart" stop-opacity="0.35" />
+          <stop offset="0%" :stop-color="chartColors.gradientStart" stop-opacity="0.38" />
           <stop offset="60%" :stop-color="chartColors.gradientEnd" stop-opacity="0.08" />
           <stop offset="100%" :stop-color="chartColors.gradientEnd" stop-opacity="0" />
         </linearGradient>
@@ -128,8 +224,19 @@ const activePoint = computed(() => points.value.find((p) => p.tooltip) || points
       </g>
 
       <!-- X-axis Labels -->
-      <g v-for="pt in points" :key="pt.label">
-        <text :x="pt.x" :y="height - 8" :fill="chartColors.textFill" font-size="10" text-anchor="middle">{{ pt.label }}</text>
+      <g v-for="(pt, i) in points" :key="pt.label + i">
+        <text
+          :x="pt.x"
+          :y="height - 8"
+          :fill="activeIndex === i ? chartColors.stroke : chartColors.textFill"
+          :font-weight="activeIndex === i ? '700' : '400'"
+          font-size="10"
+          text-anchor="middle"
+          class="x-label-text"
+          @click="activeIndex = i"
+        >
+          {{ pt.label }}
+        </text>
       </g>
 
       <!-- Area Fill -->
@@ -146,8 +253,13 @@ const activePoint = computed(() => points.value.find((p) => p.tooltip) || points
         :style="{ filter: chartColors.filter }"
       />
 
-      <!-- Active Guide Line & Tooltip (at Point 15) -->
-      <g v-if="activePoint">
+      <!-- Interactive Node Hitboxes -->
+      <g v-for="(pt, i) in points" :key="'hit-' + i" class="chart-node" @mouseenter="activeIndex = i" @click="activeIndex = i">
+        <circle :cx="pt.x" :cy="pt.y" r="14" fill="transparent" />
+      </g>
+
+      <!-- Active Guide Line & Floating Tooltip -->
+      <g v-if="activePoint" class="active-point-group">
         <line
           :x1="activePoint.x"
           :x2="activePoint.x"
@@ -160,10 +272,12 @@ const activePoint = computed(() => points.value.find((p) => p.tooltip) || points
         <circle :cx="activePoint.x" :cy="activePoint.y" r="6" :fill="chartColors.ringFill" :stroke="chartColors.ringStroke" stroke-width="2.5" />
         <circle :cx="activePoint.x" :cy="activePoint.y" r="2.5" :fill="chartColors.dotFill" />
 
-        <!-- Floating Tooltip Card ($23,620) -->
-        <g :transform="`translate(${activePoint.x - 38}, ${activePoint.y - 36})`">
-          <rect width="76" height="24" rx="6" :fill="chartColors.tooltipBg" :stroke="chartColors.tooltipBorder" />
-          <text x="38" y="16" fill="#ffffff" font-size="11" font-weight="600" text-anchor="middle">$23,620</text>
+        <!-- Floating Tooltip Card -->
+        <g :transform="`translate(${Math.max(plot.left, Math.min(width - plot.right - 80, activePoint.x - 40))}, ${Math.max(10, activePoint.y - 38)})`">
+          <rect width="80" height="26" rx="6" :fill="chartColors.tooltipBg" :stroke="chartColors.tooltipBorder" />
+          <text x="40" y="17" fill="#ffffff" font-size="11" font-weight="600" text-anchor="middle">
+            {{ formatCurrency(activePoint.val) }}
+          </text>
         </g>
       </g>
     </svg>

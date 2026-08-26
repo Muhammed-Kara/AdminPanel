@@ -1,21 +1,205 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Check, KeyRound, LogOut, Moon, Palette, Sparkles, Sun, Trash2, Upload, User } from '@lucide/vue'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import {
+  Check,
+  Crop,
+  KeyRound,
+  LogOut,
+  Moon,
+  Palette,
+  RotateCw,
+  Sparkles,
+  Sun,
+  Trash2,
+  Upload,
+  User,
+  X
+} from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { useI18n } from 'vue-i18n'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import { useThemeStore } from '@/store/theme'
+import { useAuthStore } from '@/store/auth'
 
+const route = useRoute()
+const router = useRouter()
 const theme = useThemeStore()
+const auth = useAuthStore()
 const { t, locale } = useI18n()
+
 const activeTab = ref<'appearance' | 'profile' | 'general'>('appearance')
 
-// Profile State
-const avatarUrl = ref<string | null>(localStorage.getItem('vue-admin-user-avatar'))
-const fullName = ref(localStorage.getItem('vue-admin-user-name') || 'Admin User')
-const email = ref(localStorage.getItem('vue-admin-user-email') || 'admin@example.com')
-const role = ref('Sistem Yöneticisi')
+// Sync tab state with route query param (?tab=profile etc.)
+watch(
+  () => route.query.tab,
+  (tabQuery) => {
+    if (tabQuery === 'profile' || tabQuery === 'appearance' || tabQuery === 'general') {
+      activeTab.value = tabQuery
+    }
+  },
+  { immediate: true }
+)
+
+function switchTab(tab: 'appearance' | 'profile' | 'general') {
+  activeTab.value = tab
+  router.replace({ query: { ...route.query, tab } })
+}
+
+// Profile State synced with Auth Store
+const fullName = ref(auth.user?.name || 'Admin User')
+const email = ref(auth.user?.email || 'admin@example.com')
+const role = ref(auth.user?.role || 'Sistem Yöneticisi')
+const avatarUrl = ref<string | null>(auth.user?.avatar || null)
 const fileInput = ref<HTMLInputElement | null>(null)
+
+watch(
+  () => auth.user,
+  (u) => {
+    if (u) {
+      fullName.value = u.name || ''
+      email.value = u.email || ''
+      role.value = u.role || ''
+      avatarUrl.value = u.avatar || null
+    }
+  },
+  { deep: true, immediate: true }
+)
+
+const userInitials = computed(() => {
+  const name = fullName.value || 'Admin User'
+  const parts = name.trim().split(' ')
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+  return name.slice(0, 2).toUpperCase()
+})
+
+// Crop Modal State & Functions
+const isCropModalOpen = ref(false)
+const rawImageSrc = ref<string | null>(null)
+const zoomScale = ref(1)
+const cropRotation = ref(0)
+const cropOffsetX = ref(0)
+const cropOffsetY = ref(0)
+const isDragging = ref(false)
+const dragStart = ref({ x: 0, y: 0 })
+
+function triggerAvatarUpload() {
+  fileInput.value?.click()
+}
+
+function handleAvatarUpload(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const result = e.target?.result as string
+      rawImageSrc.value = result
+      zoomScale.value = 1
+      cropRotation.value = 0
+      cropOffsetX.value = 0
+      cropOffsetY.value = 0
+      isCropModalOpen.value = true
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+function startDrag(e: MouseEvent | TouchEvent) {
+  isDragging.value = true
+  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  dragStart.value = { x: clientX - cropOffsetX.value, y: clientY - cropOffsetY.value }
+}
+
+function onDrag(e: MouseEvent | TouchEvent) {
+  if (!isDragging.value) return
+  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  cropOffsetX.value = clientX - dragStart.value.x
+  cropOffsetY.value = clientY - dragStart.value.y
+}
+
+function stopDrag() {
+  isDragging.value = false
+}
+
+function rotateImage() {
+  cropRotation.value = (cropRotation.value + 90) % 360
+}
+
+function saveCroppedImage() {
+  if (!rawImageSrc.value) return
+
+  const img = new Image()
+  img.crossOrigin = 'anonymous'
+  img.onload = () => {
+    const size = 300
+    const canvas = document.createElement('canvas')
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    ctx.clearRect(0, 0, size, size)
+    ctx.save()
+
+    // Move origin to center of canvas
+    ctx.translate(size / 2, size / 2)
+    ctx.rotate((cropRotation.value * Math.PI) / 180)
+    ctx.scale(zoomScale.value, zoomScale.value)
+
+    const aspect = img.width / img.height
+    let drawW = size
+    let drawH = size
+    if (aspect > 1) {
+      drawW = size * aspect
+    } else {
+      drawH = size / aspect
+    }
+
+    ctx.drawImage(
+      img,
+      -drawW / 2 + cropOffsetX.value,
+      -drawH / 2 + cropOffsetY.value,
+      drawW,
+      drawH
+    )
+    ctx.restore()
+
+    const croppedResult = canvas.toDataURL('image/png')
+    avatarUrl.value = croppedResult
+    auth.updateUser({ avatar: croppedResult })
+    isCropModalOpen.value = false
+    rawImageSrc.value = null
+    if (fileInput.value) fileInput.value.value = ''
+    toast.success('Profil fotoğrafı kırpıldı ve güncellendi.')
+  }
+  img.src = rawImageSrc.value
+}
+
+function removeAvatar() {
+  avatarUrl.value = null
+  auth.updateUser({ avatar: undefined })
+  if (fileInput.value) fileInput.value.value = ''
+  toast.success(t('toast.avatarRemoved'))
+}
+
+function savePersonalInfo() {
+  if (!fullName.value.trim() || !email.value.trim()) {
+    toast.error(t('login.required') || 'Lütfen gerekli alanları doldurun.')
+    return
+  }
+
+  auth.updateUser({
+    name: fullName.value.trim(),
+    email: email.value.trim(),
+    role: role.value.trim(),
+  })
+  toast.success(t('toast.profileUpdated'))
+}
 
 // Password State
 const currentPassword = ref('')
@@ -29,39 +213,11 @@ function setLocale(value: string) {
   toast.success(t('toast.appearanceUpdated'))
 }
 
-function triggerAvatarUpload() {
-  fileInput.value?.click()
-}
-
-function handleAvatarUpload(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const result = e.target?.result as string
-      avatarUrl.value = result
-      localStorage.setItem('vue-admin-user-avatar', result)
-      toast.success(t('toast.avatarUpdated'))
-    }
-    reader.readAsDataURL(file)
-  }
-}
-
-function removeAvatar() {
-  avatarUrl.value = null
-  localStorage.removeItem('vue-admin-user-avatar')
-  if (fileInput.value) fileInput.value.value = ''
-  toast.success(t('toast.avatarRemoved'))
-}
-
-function savePersonalInfo() {
-  localStorage.setItem('vue-admin-user-name', fullName.value)
-  localStorage.setItem('vue-admin-user-email', email.value)
-  toast.success(t('toast.profileUpdated'))
-}
-
 function updatePassword() {
+  if (!currentPassword.value) {
+    toast.error('Lütfen mevcut şifrenizi girin.')
+    return
+  }
   if (!newPassword.value || newPassword.value.length < 6) {
     toast.error(t('toast.passwordMinLength'))
     return
@@ -77,7 +233,7 @@ function updatePassword() {
 }
 
 function logoutOtherDevices() {
-  toast.success(t('common.actions') + ': Tüm cihaz oturumları sonlandırıldı.')
+  toast.success(t('common.actions') + ': Tüm cihaz oturumları başarıyla sonlandırıldı.')
 }
 </script>
 
@@ -89,21 +245,21 @@ function logoutOtherDevices() {
     <button
       type="button"
       :class="{ active: activeTab === 'appearance' }"
-      @click="activeTab = 'appearance'"
+      @click="switchTab('appearance')"
     >
       <Palette :size="16" /> {{ t('settings.themeTab') }}
     </button>
     <button
       type="button"
       :class="{ active: activeTab === 'profile' }"
-      @click="activeTab = 'profile'"
+      @click="switchTab('profile')"
     >
       <User :size="16" /> {{ t('settings.profileTab') }}
     </button>
     <button
       type="button"
       :class="{ active: activeTab === 'general' }"
-      @click="activeTab = 'general'"
+      @click="switchTab('general')"
     >
       <Sparkles :size="16" /> {{ t('settings.generalTab') }}
     </button>
@@ -158,7 +314,7 @@ function logoutOtherDevices() {
         <div class="avatar-upload-box">
           <div class="avatar-preview">
             <img v-if="avatarUrl" :src="avatarUrl" alt="Avatar" />
-            <span v-else>AD</span>
+            <span v-else>{{ userInitials }}</span>
           </div>
           <input
             ref="fileInput"
@@ -268,6 +424,74 @@ function logoutOtherDevices() {
           <option value="tr">Türkçe</option>
           <option value="en">English</option>
         </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Cropper Dialog Modal -->
+  <div v-if="isCropModalOpen" class="dialog-layer" @click.self="isCropModalOpen = false">
+    <div class="crop-modal-card">
+      <div class="crop-modal-header">
+        <h3>Profil Fotoğrafını Kırp ve Hizala</h3>
+        <button type="button" class="crop-modal-close" @click="isCropModalOpen = false">
+          <X :size="18" />
+        </button>
+      </div>
+
+      <div class="crop-modal-body">
+        <!-- Drag & Pan Workspace -->
+        <div
+          class="crop-workspace"
+          @mousedown="startDrag"
+          @mousemove="onDrag"
+          @mouseup="stopDrag"
+          @mouseleave="stopDrag"
+          @touchstart="startDrag"
+          @touchmove="onDrag"
+          @touchend="stopDrag"
+        >
+          <img
+            v-if="rawImageSrc"
+            :src="rawImageSrc"
+            class="crop-preview-img"
+            :style="{
+              transform: `translate(${cropOffsetX}px, ${cropOffsetY}px) rotate(${cropRotation}deg) scale(${zoomScale})`,
+              width: '100%'
+            }"
+            alt="Raw Image"
+          />
+          <div class="crop-circle-mask" />
+        </div>
+
+        <!-- Adjustment Controls (Zoom & Rotate) -->
+        <div class="crop-controls">
+          <div class="crop-control-row">
+            <label>Yakınlaştırma (Ölçek): {{ Math.round(zoomScale * 100) }}%</label>
+            <input
+              v-model.number="zoomScale"
+              type="range"
+              min="1"
+              max="3"
+              step="0.05"
+              class="crop-slider"
+            />
+          </div>
+          <div class="crop-control-row">
+            <span>Yön: {{ cropRotation }}°</span>
+            <button type="button" class="secondary-button small-btn" @click="rotateImage">
+              <RotateCw :size="14" /> Döndür (90°)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="crop-modal-footer">
+        <button type="button" class="secondary-button" @click="isCropModalOpen = false">
+          İptal
+        </button>
+        <button type="button" class="primary-button" @click="saveCroppedImage">
+          <Crop :size="15" /> Kırp ve Kaydet
+        </button>
       </div>
     </div>
   </div>

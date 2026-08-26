@@ -6,9 +6,11 @@ import {
   CheckCheck,
   ChevronDown,
   LayoutDashboard,
+  LogOut,
   Menu,
   Moon,
   Package,
+  Palette,
   Search,
   Settings,
   ShoppingBag,
@@ -34,6 +36,15 @@ const { t } = useI18n()
 const pageName = computed(() => {
   if (route.name === 'dashboard' || !route.name) return t('nav.dashboard')
   return t(`nav.${String(route.name)}`)
+})
+
+const userInitials = computed(() => {
+  const name = auth.user?.name || 'Admin'
+  const parts = name.trim().split(' ')
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+  return name.slice(0, 2).toUpperCase()
 })
 
 // Search State & Functionality
@@ -77,14 +88,12 @@ const filteredSearchResults = computed(() => {
 
   const results: SearchResultItem[] = []
   
-  // Filter pages
   searchablePages.forEach(p => {
     if (p.title.toLowerCase().includes(query)) {
       results.push(p)
     }
   })
 
-  // Filter items
   searchableItems.forEach(item => {
     if (
       item.title.toLowerCase().includes(query) ||
@@ -100,6 +109,8 @@ const filteredSearchResults = computed(() => {
 function navigateTo(path: string) {
   router.push(path)
   isSearchOpen.value = false
+  isNotificationOpen.value = false
+  isProfileOpen.value = false
   searchQuery.value = ''
 }
 
@@ -160,6 +171,7 @@ const unreadCount = computed(() => notifications.value.filter(n => !n.read).leng
 function toggleNotifications() {
   isNotificationOpen.value = !isNotificationOpen.value
   isSearchOpen.value = false
+  isProfileOpen.value = false
 }
 
 function markAllAsRead() {
@@ -177,6 +189,21 @@ function clearAllNotifications() {
   notifications.value = []
 }
 
+// Profile Dropdown State
+const isProfileOpen = ref(false)
+
+function toggleProfile() {
+  isProfileOpen.value = !isProfileOpen.value
+  isSearchOpen.value = false
+  isNotificationOpen.value = false
+}
+
+function handleLogout() {
+  auth.logout()
+  router.push('/login')
+  isProfileOpen.value = false
+}
+
 // Global click outside listener
 function handleClickOutside(event: MouseEvent) {
   const target = event.target as HTMLElement
@@ -185,6 +212,9 @@ function handleClickOutside(event: MouseEvent) {
   }
   if (!target.closest('.notification-box')) {
     isNotificationOpen.value = false
+  }
+  if (!target.closest('.profile-header-container')) {
+    isProfileOpen.value = false
   }
 }
 
@@ -304,13 +334,37 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Profile Header -->
-      <div class="profile-header-box">
-        <div class="avatar-circle">
-          <User :size="16" />
+      <!-- Profile Header & Dropdown -->
+      <div class="profile-header-container">
+        <div class="profile-header-box" @click="toggleProfile">
+          <div class="avatar-circle">
+            <img v-if="auth.user?.avatar" :src="auth.user.avatar" class="avatar-circle-img" alt="Avatar" />
+            <span v-else class="avatar-initials">{{ userInitials }}</span>
+          </div>
+          <span class="user-name-text">{{ auth.user?.name || 'Admin' }}</span>
+          <ChevronDown :size="14" class="dropdown-icon" :class="{ open: isProfileOpen }" />
         </div>
-        <span class="user-name-text">{{ auth.user?.name || 'Admin' }}</span>
-        <ChevronDown :size="14" class="dropdown-icon" />
+
+        <div v-if="isProfileOpen" class="profile-dropdown">
+          <div class="profile-dropdown-user">
+            <strong>{{ auth.user?.name || 'Admin' }}</strong>
+            <span>{{ auth.user?.email || 'admin@example.com' }}</span>
+          </div>
+          <div class="profile-dropdown-divider" />
+          <button type="button" class="profile-dropdown-item" @click="navigateTo('/settings?tab=profile')">
+            <User :size="15" />
+            <span>Profil Ayarları</span>
+          </button>
+          <button type="button" class="profile-dropdown-item" @click="navigateTo('/settings?tab=appearance')">
+            <Palette :size="15" />
+            <span>Görünüm & Tema</span>
+          </button>
+          <div class="profile-dropdown-divider" />
+          <button type="button" class="profile-dropdown-item danger" @click="handleLogout">
+            <LogOut :size="15" />
+            <span>{{ t('common.logout') || 'Çıkış Yap' }}</span>
+          </button>
+        </div>
       </div>
     </div>
   </header>
