@@ -1,80 +1,97 @@
 <script setup lang="ts">
-import { useQuery } from '@tanstack/vue-query'
-import { useI18n } from 'vue-i18n'
-import { ArrowUpRight, CalendarDays, DollarSign, Package, ShoppingCart, TrendingDown, TrendingUp, Users } from '@lucide/vue'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import PageHeader from '@/components/ui/PageHeader.vue'
+import { ref } from 'vue'
+import {
+  Activity,
+  ChevronDown,
+  CreditCard,
+  ShoppingBag,
+  ShoppingCart,
+  Users
+} from '@lucide/vue'
+import { Card, CardContent } from '@/components/ui/card'
 import RevenueAreaChart from '@/components/ui/RevenueAreaChart.vue'
-import { dummyService } from '@/service/dummy/dummy-service'
 
-const { t, locale } = useI18n()
-const { data, isPending } = useQuery({ queryKey: ['dashboard'], queryFn: dummyService.getDashboard })
-const icons = { revenue: DollarSign, orders: ShoppingCart, products: Package, activeUsers: Users }
-const iconFor = (key: string) => icons[key as keyof typeof icons] ?? Package
-const statusVariant = (status: string) => {
-  if (status === 'delivered') return 'success'
-  if (status === 'pending') return 'warning'
-  return 'info'
-}
+const selectedPeriod = ref('This Month')
+
+const stats = [
+  { key: 'users', label: 'Total Users', value: '12,540', change: '↑ 12.5%', icon: Users, color: 'purple' },
+  { key: 'orders', label: 'Total Orders', value: '8,320', change: '↑ 8.2%', icon: ShoppingCart, color: 'blue' },
+  { key: 'revenue', label: 'Total Revenue', value: '$24,820', change: '↑ 15.3%', icon: CreditCard, color: 'indigo' },
+  { key: 'active', label: 'Active Users', value: '1,320', change: '↑ 6.1%', icon: Activity, color: 'violet' },
+]
+
+const recentOrders = [
+  { id: '#12578', customer: 'John Doe', amount: '$120.00', status: 'Paid' },
+  { id: '#12577', customer: 'Jane Smith', amount: '$89.00', status: 'Paid' },
+  { id: '#12576', customer: 'Robert Brown', amount: '$149.00', status: 'Pending' },
+  { id: '#12575', customer: 'Emily Davis', amount: '$99.00', status: 'Paid' },
+]
 </script>
 
 <template>
-  <PageHeader :title="t('dashboard.title')" :description="t('dashboard.description')">
-    <template #actions>
-      <Button variant="outline"><CalendarDays :size="15" />{{ t('dashboard.period') }}</Button>
-    </template>
-  </PageHeader>
-  <div v-if="isPending" class="loading-state dashboard-loading"><span class="spinner" />{{ t('common.loading') }}</div>
-  <template v-else-if="data">
+  <div class="dashboard-page-shell">
+    <!-- Stat Cards (4 Columns) -->
     <div class="dashboard-stats-grid">
-      <Card v-for="stat in data.stats" :key="stat.key" class="dashboard-stat-card">
-        <CardHeader class="dashboard-stat-header">
-          <CardDescription>{{ t(`dashboard.${stat.key}`) }}</CardDescription>
-          <div class="stat-icon"><component :is="iconFor(stat.key)" :size="17" /></div>
-        </CardHeader>
+      <Card v-for="stat in stats" :key="stat.key" class="dashboard-stat-card">
         <CardContent>
-          <strong class="dashboard-stat-value">{{ stat.value }}</strong>
-          <div class="dashboard-stat-meta">
-            <Badge :variant="stat.trend === 'up' ? 'success' : 'destructive'">
-              <TrendingUp v-if="stat.trend === 'up'" :size="12" /><TrendingDown v-else :size="12" />{{ stat.change }}
-            </Badge>
-            <span>{{ t('dashboard.lastMonth') }}</span>
+          <div class="stat-card-top">
+            <div class="stat-icon-box" :class="stat.color">
+              <component :is="stat.icon" :size="18" />
+            </div>
+            <span class="stat-label-text">{{ stat.label }}</span>
+          </div>
+          <strong class="stat-number-text">{{ stat.value }}</strong>
+          <div class="stat-meta-row">
+            <span class="stat-trend-text">{{ stat.change }}</span>
+            <span class="stat-period-text">vs last month</span>
           </div>
         </CardContent>
       </Card>
     </div>
+
+    <!-- Chart + Orders Grid -->
     <div class="dashboard-content-grid">
+      <!-- Sales Overview Card -->
       <Card class="dashboard-chart-card">
-        <CardHeader class="dashboard-panel-header">
-          <div><CardTitle>{{ t('dashboard.chartTitle') }}</CardTitle><CardDescription>{{ t('dashboard.chartDescription') }}</CardDescription></div>
-          <Badge variant="default"><ArrowUpRight :size="13" />{{ t('dashboard.yearlyGrowth') }}</Badge>
-        </CardHeader>
+        <div class="card-header-row">
+          <h2 class="card-heading-title">Sales Overview</h2>
+          <div class="period-select-box">
+            <span>{{ selectedPeriod }}</span>
+            <ChevronDown :size="14" />
+          </div>
+        </div>
         <CardContent>
-          <RevenueAreaChart
-            :items="data.revenue"
-            :locale="locale"
-            :current-label="t('dashboard.currentMonth')"
-            :average-label="t('dashboard.monthlyAverage')"
-            :accessible-label="t('dashboard.chartAccessibleLabel')"
-          />
+          <RevenueAreaChart />
         </CardContent>
       </Card>
+
+      <!-- Recent Orders Card -->
       <Card class="dashboard-orders-card">
-        <CardHeader class="dashboard-panel-header">
-          <div><CardTitle>{{ t('dashboard.recentOrders') }}</CardTitle><CardDescription>{{ t('dashboard.recentDescription') }}</CardDescription></div>
-          <Button variant="ghost" size="sm">{{ t('dashboard.viewAll') }}</Button>
-        </CardHeader>
-        <CardContent class="dashboard-order-list">
-          <div v-for="order in data.recentOrders" :key="order.id" class="dashboard-order-row">
-            <Avatar><AvatarFallback>{{ order.customer.slice(0, 2).toUpperCase() }}</AvatarFallback></Avatar>
-            <div class="dashboard-order-customer"><strong>{{ order.customer }}</strong><span>{{ order.id }}</span></div>
-            <div class="dashboard-order-total"><strong>{{ order.amount }}</strong><Badge :variant="statusVariant(order.status)">{{ t(`status.${order.status}`) }}</Badge></div>
+        <div class="card-header-row">
+          <h2 class="card-heading-title">Recent Orders</h2>
+          <button type="button" class="view-all-btn">View All</button>
+        </div>
+        <CardContent class="orders-list-wrapper">
+          <div v-for="order in recentOrders" :key="order.id" class="recent-order-item">
+            <div class="order-icon-box">
+              <ShoppingBag :size="17" />
+            </div>
+            <div class="order-info-box">
+              <strong class="order-id-text">{{ order.id }}</strong>
+              <span class="order-customer-text">{{ order.customer }}</span>
+            </div>
+            <div class="order-right-box">
+              <strong class="order-amount-text">{{ order.amount }}</strong>
+              <span
+                class="order-status-badge"
+                :class="order.status === 'Paid' ? 'paid' : 'pending'"
+              >
+                {{ order.status }}
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  </template>
+  </div>
 </template>

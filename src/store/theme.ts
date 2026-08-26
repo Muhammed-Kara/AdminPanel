@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 
 export const useThemeStore = defineStore('theme', () => {
   const isDark = ref(localStorage.getItem('vue-admin-theme') === 'dark')
-  const radius = ref(2)
+  const radius = ref(Number(localStorage.getItem('vue-admin-radius')) || 2.5)
 
   watch([isDark, radius], ([darkValue, radiusValue]) => {
     document.documentElement.classList.toggle('dark', darkValue)
@@ -11,6 +11,7 @@ export const useThemeStore = defineStore('theme', () => {
     document.documentElement.style.setProperty('--radius', `${radiusValue}px`)
 
     localStorage.setItem('vue-admin-theme', darkValue ? 'dark' : 'light')
+    localStorage.setItem('vue-admin-radius', String(radiusValue))
   }, { immediate: true, deep: true })
 
   function toggle() {
